@@ -1,0 +1,82 @@
+body {
+    padding-top: 70px;
+}
+
+#signin-helper {
+    margin-top: 50px;
+    td {
+	cursor: pointer;
+    }
+}
+
+.purple {
+    border: 1px solid #ccc;
+}
+
+.brk {
+  padding: 0px;
+  min-height: 40px;
+}
+
+.requestform textarea.form-control {
+  height: 8em;
+}
+
+.requestform .btn-block {
+  width: inherit;
+}
+
+.tablestyle div {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display:         flex;
+}
+
+.description {
+  border: 1px solid #bbb;
+  padding: 5px 20px 15px 20px;
+}
+
+.bx {
+  min-height: 3em;
+}
+
+a .bx {
+  color: black;
+
+}
+
+.tablestyle div {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  align-items: center;
+}
+
+
+a:nth-of-type(odd) .bx {
+  background: #e8e8e8;
+}
+
+a:nth-of-type(even) .bx {
+  background: #f5f5f5;
+}
+
+.vc {
+  align-items: center;
+  text-align: left;
+}
+
+.brk {
+  min-height: 8px;
+}
+
+a .bx:hover {
+  background-color: #ffd;
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: none;
+}

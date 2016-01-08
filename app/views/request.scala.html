@@ -1,0 +1,42 @@
+@(dr: List[DataReq])(implicit request: RequestHeader, user: User, messages: Messages)
+
+@import controllers.routes
+
+@views.html.templates.logged(title = "My Requests", tab = "requestDetail") {
+	
+  @tags.alertFromRequest(request, "success")
+	
+  <h1>@Messages("request.title")</h1>
+
+  <div class="container-fluid tablestyle">
+    <div class="row">
+      <div class="col-sm-2">@Messages("field.requestTitle")</div>
+      <div class="col-sm-2">@Messages("field.requestProject")</div>
+      <div class="col-sm-2">@Messages("field.requestStatus")</div>
+      <div class="col-sm-2">@Messages("field.requestActivity")</div>
+      <div class="col-sm-4">@Messages("field.requestNotes")</div>
+    </div>
+  
+    @dr.map { r =>
+      <a href="request@r.id">
+        <div class="row bx">
+          <div class="col-sm-2">
+            @r.title
+          </div>
+          <div class="col-sm-2">
+            Project Name
+          </div>
+          <div class="col-sm-2">
+            Pending
+          </div>
+          <div class="col-sm-2">
+            7/15/2015
+          </div>
+          <div class="col-sm-4">
+            @r.fullName
+          </div>
+        </div>
+      </a>
+    }
+  </div>
+}
