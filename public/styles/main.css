@@ -18,6 +18,48 @@ body {
   min-height: 40px;
 }
 
+.reqinfo {
+  border: 1px solid #ccc;
+  padding: 7px;
+  display: table;
+}
+
+.dbtable {
+
+}
+
+.uploaded {
+  height: 8em;
+  width: 24em;
+  border: 1px solid #ccc;
+  
+}
+
+.requirements {
+  margin-top: 2em;
+}
+
+.requirements label {
+  font-weight: inherit;
+}
+
+.requirements h4 {
+  font-weight: bold;
+  font-size: inherit;
+}
+.submitrow {
+  text-align: center;
+  margin-top: 2em;
+}
+
+.requpdate h1, .requpdate h5 {
+  text-align: center;
+}
+
+.reqtitle {
+  padding: 0px 0px 1px 2px;
+}
+
 .requestform textarea.form-control {
   height: 8em;
 }
@@ -57,11 +99,11 @@ a .bx {
 
 
 a:nth-of-type(odd) .bx {
-  background: #e8e8e8;
+  background: #eaeaea;
 }
 
 a:nth-of-type(even) .bx {
-  background: #f5f5f5;
+  background: #fff;
 }
 
 .vc {

@@ -16,7 +16,7 @@
 		<ul class="nav navbar-nav">
 			@loggedUser.map { implicit user =>
 				@withService("master") {
-					<li class="@("active".when(tab == "settings"))"><a href="@routes.Application.requests">@Messages("brokerRequests")</a></li>
+					<li class="@("active".when(tab == "brokerrequests"))"><a href="@routes.Application.requests">@Messages("brokerRequests")</a></li>
 				}
 			        <li class="@("active".when(tab == "myrequests"))"><a href="@routes.Application.myRequests">@Messages("myRequests")</a></li>
 			        <li class="@("active".when(tab == "newrequest"))"><a href="@routes.Application.newRequest">@Messages("newRequest")</a></li>

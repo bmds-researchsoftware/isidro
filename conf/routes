@@ -26,6 +26,7 @@ GET	/newRequest			controllers.Application.newRequest
 POST	/newRequest			controllers.Application.handleNewRequest
 GET	/myaccount			controllers.Application.myAccount
 GET     /request:rid                    controllers.Application.request(rid: Int)
+GET     /update:rid                    controllers.Application.brokerRequest(rid: Int)
 
 # GET	/lang/$lang<(en|es)>		controllers.Application.selectLang(lang: String)
 

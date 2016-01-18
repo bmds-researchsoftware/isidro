@@ -20,6 +20,9 @@ field.requestNotes=Notes
 newRequest.title=New Data Request
 submitRequest=Send Request
 myrequests.title=Request History
+brokerrequests.title=Incoming Requests
+brokerrequest.title=Isidro Data Broker Input Screen
+brokerrequest.caption=Upload your file and select the appropriate security, education, and legal requirements.
 request.title=Request Details
 brokerRequests=Incoming Requests
 newRequest=New Request
@@ -77,7 +80,7 @@ signup.sent=We''ve just sent you an email to {0}. Please follow its instructions
 signup.ready=You have now your account available
 
 signin=Sign in
-signin.title=Sign in with your credentials
+signin.title=Sign in to ISIDRO
 signin.rememberme=Remember me
 signin.signup.question=Don''t you have an account?
 signin.signup=Sign up now
@@ -104,8 +107,8 @@ auth.passwords.notequal=The passwords must be equal
 auth.password.changed=The password has been successfully changed
 auth.currentpwd.incorrect=The current password is incorrect
 
-denied.title=Access denied!
-denied.text=You have no privileges to be here.
+denied.title=Access denied
+denied.text=You do not have access to this page
 
 ################################################################################################
 # ERRORS

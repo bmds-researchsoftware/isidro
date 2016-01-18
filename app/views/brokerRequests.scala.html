@@ -2,11 +2,11 @@
 
 @import controllers.routes
 
-@views.html.templates.logged(title = "My Requests", tab = "myrequests") {
+@views.html.templates.logged(title = "Incoming Requests", tab = "brokerrequests") {
 	
   @tags.alertFromRequest(request, "success")
 	
-  <h1>@Messages("myrequests.title")</h1>
+  <h1>@Messages("brokerrequests.title")</h1>
   <div class="container-fluid tablestyle">
     <div class="row">
       <div class="col-sm-2">@Messages("field.requestTitle")</div>
@@ -17,7 +17,7 @@
     </div>
   
     @dr.map { r =>
-      <a href="request@r.id">
+      <a href="update@r.id">
         <div class="row bx">
           <div class="col-sm-2">
             @r.title
