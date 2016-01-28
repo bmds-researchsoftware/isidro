@@ -18,7 +18,7 @@ By default, a postgres database will be used:
 
        ALTER USER playdbuser with encrypted password 'xyzzy123';
 ```
-* In the file, postgresql.conf uncomment the line: 
+* In the file postgresql.conf, uncomment the line: 
 ```
 #!conf
 
