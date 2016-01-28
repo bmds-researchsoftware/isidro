@@ -35,9 +35,9 @@ libraryDependencies ++= Seq(
   "org.webjars" %% "webjars-play" % "2.4.0",
   "com.typesafe.play" %% "play-slick" % "1.1.1",
   "com.typesafe.play" %% "play-slick-evolutions" % "1.1.1",
-  "mysql" % "mysql-connector-java" % "5.1.34",
-  "com.h2database" % "h2" % "1.4.190",
-  //"org.postgresql" % "postgresql" % "9.4-1206-jdbc42",
+  // "mysql" % "mysql-connector-java" % "5.1.34",
+  // "com.h2database" % "h2" % "1.4.190",
+  "org.postgresql" % "postgresql" % "9.4-1206-jdbc42",
   "org.webjars" % "requirejs" % "2.1.19",
   "com.mohiva" %% "play-silhouette" % "3.0.0",
   "com.adrianhurt" %% "play-bootstrap3" % "0.4.4-P24",	// Add bootstrap3 helpers and field constructors (http://play-bootstrap3.herokuapp.com/)
