@@ -7,7 +7,22 @@ To run:
 * Run the command "./activator ui" in the project folder.
 * Run the application from activator's browser window
 
-By default, an in-memory database will be used.  To switch to mysql:
+By default, a postgres database will be used:
 
-* Create a mysql database
-* Set the database configuration in ./conf/application.conf to the database's url, user, and password.
+* Install postgres
+* Create a database for isidro (default: isidro)
+* Create a user for isidro (default: playdbuser)
+    * Make sure to use an encrypted password: 
+```
+#!sql
+
+       ALTER USER playdbuser with encrypted password 'xyzzy123';
+```
+* In the file, postgresql.conf uncomment the line: 
+```
+#!conf
+
+       listen_addresses = 'localhost'
+```
+
+* Restart the database server
