@@ -44,13 +44,13 @@ CREATE TABLE "user" (
   "firstName" varchar(254) NOT NULL,
   "lastName" varchar(254) NOT NULL,
   "email" varchar(254) NOT NULL,
-  "emailConfirmed" SMALLINT NOT NULL DEFAULT '0',
+  "emailConfirmed" boolean NOT NULL DEFAULT FALSE,
   "password" varchar(254) NOT NULL DEFAULT '',
   "services" varchar(254) NOT NULL DEFAULT '',
   PRIMARY KEY ("userId")
 );
 
-INSERT INTO "user" VALUES (1,'','William','Adama','databroker@isidro.dartmouth.edu',1,'$2a$10$Mtcq4iFwL6tRhekgpH3jxeckRUqu8tKcM0JpmdsUz7srLtAbvDW06','master'),(2,'','Mickey','Mouse','mmouse@isidro.dartmouth.edu',1,'$2a$10$Mtcq4iFwL6tRhekgpH3jxeckRUqu8tKcM0JpmdsUz7srLtAbvDW06',''),(3,'','Daffy','Duck','winner@isidro.dartmouth.edu',1,'$2a$10$Mtcq4iFwL6tRhekgpH3jxeckRUqu8tKcM0JpmdsUz7srLtAbvDW06',''),(4,'','Arya','Stark','arya@gmail.com',1,'$2a$10$Mtcq4iFwL6tRhekgpH3jxeckRUqu8tKcM0JpmdsUz7srLtAbvDW06','x');
+INSERT INTO "user" VALUES (1,'','William','Adama','databroker@isidro.dartmouth.edu',TRUE,'$2a$10$Mtcq4iFwL6tRhekgpH3jxeckRUqu8tKcM0JpmdsUz7srLtAbvDW06','master'),(2,'','Mickey','Mouse','mmouse@isidro.dartmouth.edu',TRUE,'$2a$10$Mtcq4iFwL6tRhekgpH3jxeckRUqu8tKcM0JpmdsUz7srLtAbvDW06',''),(3,'','Daffy','Duck','winner@isidro.dartmouth.edu',TRUE,'$2a$10$Mtcq4iFwL6tRhekgpH3jxeckRUqu8tKcM0JpmdsUz7srLtAbvDW06',''),(4,'','Arya','Stark','arya@gmail.com',TRUE,'$2a$10$Mtcq4iFwL6tRhekgpH3jxeckRUqu8tKcM0JpmdsUz7srLtAbvDW06','x');
 
 DROP TABLE IF EXISTS "user_requirement_log";
 CREATE TABLE "user_requirement_log" (
