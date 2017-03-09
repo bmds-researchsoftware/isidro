@@ -1,0 +1,36 @@
+@(r: DataRequest, req: List[Requirement], rr: List[Int])(implicit request: RequestHeader, user: User, messages: Messages)
+
+@import controllers.routes
+
+@views.html.templates.logged(title = Messages("edit.requirements.title"), tab = "update") {
+	
+  @tags.alertFromRequest(request, "success")
+    <hr />
+    <div class="container-fluid content">
+      <div class="row">
+        <div class="col-sm-8 col-sm-offset-2 requpdate">
+          <div class="pageheader">@Messages("editRequirements.title", r.id, r.title)</div>
+          <h5>@Messages("editRequirements.caption")</h5>
+        </div>
+      </div>
+      <p />
+      <form method="post">
+        @requestBox(r)
+        <div class="row">
+          <div class="col-sm-4 col-sm-offset-2 left">
+            <div class="requirements">
+              @req.map { rq =>
+                @if(rq.title=="") {
+                  <h4>@rq.text</h4>
+                } else {
+                  <input type="checkbox" name="rq@rq.id" id="rq@rq.id" @if(rr contains rq.id){checked} /> <label for="rq@rq.id">@rq.title</label><br>
+                }
+              }
+            </div>  
+          </div>
+        </div>
+        @submit(0, "Edit Request")
+      </form>
+    </div>
+}
+

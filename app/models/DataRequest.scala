@@ -1,6 +1,6 @@
 package models
 
-case class DataReq(id: Int, title: String, firstName: String, lastName: String, userId: Long) {
-  def fullName = firstName + " " + lastName
+case class DataRequest(id: Int, userId: Long, email: String, title: String, description: String, status: Int, pi: String, phone: String, cphs: String) {
+    def statusString = List("New Request", "Awaiting Requirements", "Ready To Send", "Sent", "Downloaded", "Closed")(status)
 }
-case class DataRequest(id: Int, userId: Long, title: String, description: String)
+

@@ -1,0 +1,57 @@
+@(r: DataRequest)(implicit request: RequestHeader, user: User, messages: Messages)
+
+@import controllers.routes
+
+@views.html.templates.logged(title = Messages("send.file.title"), tab = "update") {
+  @tags.alertFromRequest(request, "success")
+  <hr/>
+  <div class="container-fluid content">
+    <div class="row">
+      <div class="col-sm-8 col-sm-offset-2 requpdate">
+        <div class="pageheader">@Messages("sendFile.title", r.id, r.title)</div>
+        @Messages("sendFile.caption")
+      </div>
+    </div>
+    <p />
+    @requestBox(r)
+    <br/>
+    <form method="post" enctype="multipart/form-data">
+      <div class="row">
+        <div class="col-sm-12">
+          <fieldset>
+            <input type="file" name="dataFile">
+          </fieldset>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-sm-12">
+          <input type="checkbox" id="watermark" name="watermark" checked="checked" />
+          <label for="watermark">Watermark</label><br />
+          <input type="checkbox" id="encrypt" name="encrypt" checked="checked" />
+          <label for="encrypt">Encrypt</label><br />
+          <input type="checkbox" id="fingerprint" name="fingerprint" checked="checked" />
+          <label for="fingerprint">Fingerprint</label><br />
+          <input type="checkbox" id="signature" name="signature" checked="checked" />
+          <label for="signature">Signature</label><br />
+          <hr />
+          <div class="form-group">
+            <dt>Notes</dt>
+
+            <textarea id="notes" name="notes" class="form-control notes" placeholder="Notes" data-toggle="tooltip"></textarea>
+          </div>
+          <h3>PHI contained in this data:</h3>
+
+          @Messages("hipaa.phi").split("\\|").zipWithIndex.map { case (phi, n) => 
+            <input type="checkbox" id="phi@n" name="phi@n" value="@phi" />
+            <label for="phi@n">@phi</label><br />
+          }
+          
+          <label for="other">Other PHI:</label>
+          <input id="other" name="other" />
+        </div>
+      </div>
+      @submit(2, "Edit Requirement Progress")
+    </form>
+  </div>
+}
+

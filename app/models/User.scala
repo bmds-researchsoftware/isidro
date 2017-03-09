@@ -23,10 +23,7 @@ object UserServ extends UserTable with HasDatabaseConfig[JdbcProfile] {
   val services = Seq("A", "B")
   val users = TableQuery[Users]
   val testUsers = scala.collection.mutable.HashMap[Long, User](
-    1L -> User(1L, "databroker@isidro.dartmouth.edu", true, (new BCryptPasswordHasher()).hash("xyzzy123").password, "Eddard", "Stark", "master"),
-    2L -> User(2L, "mmouse@isidro.dartmouth.edu", true, (new BCryptPasswordHasher()).hash("xyzzy123").password, "Mickey", "Mouse", "serviceA"),
-    3L -> User(3L, "winner@isidro.dartmouth.edu", true, (new BCryptPasswordHasher()).hash("xyzzy123").password, "Daffy", "Duck", "serviceB"),
-    4L -> User(4L, "arya@gmail.com", true, (new BCryptPasswordHasher()).hash("xyzzy123").password, "Arya", "Stark", "serviceAB")
+    1L -> User(1L, "john@dartmouth.edu", true, (new BCryptPasswordHasher()).hash("xyzzy123").password, "John", "Higgins", "master")
   )
 
   def findByEmail(email: String): Future[Option[User]] = {
@@ -35,9 +32,6 @@ object UserServ extends UserTable with HasDatabaseConfig[JdbcProfile] {
 
   def save(user: User): Future[User] = {
     val q = users.insertOrUpdate(user)
-    println("save user:" + q)
-    println("save:" + q.statements)
-    println("user:" + user)
     db.run(q)
     Future.successful(user)
   }

@@ -45,6 +45,12 @@ libraryDependencies ++= Seq(
   "net.codingwell" %% "scala-guice" % "4.0.0",  // ??
   "net.ceedubs" %% "ficus" % "1.1.2",  // ??
   "com.mohiva" %% "play-silhouette-testkit" % "3.0.0" % "test", // ??
+
+  // library stuff
+  "org.csveed" % "csveed" % "0.4.0",
+  "org.apache.poi" % "poi" % "3.14",  // https://mvnrepository.com/artifact/org.apache.poi/poi-ooxml
+  "org.apache.poi" % "poi-ooxml" % "3.14", // https://mvnrepository.com/artifact/org.apache.poi/poi-ooxml-schemas
+  "org.apache.poi" % "poi-ooxml-schemas" % "3.14", // https://mvnrepository.com/artifact/org.apache.poi/poi-ooxml-schemas
   filters
 )
 

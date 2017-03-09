@@ -1,4 +1,4 @@
-@(dr: Option[DataReq])(implicit request: RequestHeader, user: User, messages: Messages)
+@(dr: Option[DataRequest], state: Int)(implicit request: RequestHeader, user: User, messages: Messages)
 
 @import controllers.routes
 
@@ -28,13 +28,13 @@
             Project Name
           </div>
           <div class="col-sm-2">
-            Pending
+            xPending
           </div>
           <div class="col-sm-2">
             7/15/2015
           </div>
           <div class="col-sm-4">
-            @r.fullName
+            r.fullName
           </div>
         </div>
       </a>

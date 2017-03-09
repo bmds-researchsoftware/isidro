@@ -15,8 +15,9 @@
     <div class="post-form-opts">
       <p>@Messages("signin.forgot.question") <a href="@routes.Auth.forgotPassword">@Messages("signin.forgot")</a></p>
     </div>
+    <hr />
     <div class="container-fluid">
-      <div class="row">
+      <div class="box-center"><div class="row">
         <div class="col-sm-5 description">
           <h4>General Description</h4>
           @Messages("generalDescription")
@@ -25,7 +26,7 @@
           <h4>Institutional Description</h4>
           @Messages("institutionalDescription")
         </div>
-      </div>
+      </div></div>
     </div>
     @views.html.tags.signInHelper()
   </fieldset>
