@@ -31,18 +31,10 @@ import edu.dartmouth.geisel.isidro.signature.ExcelSignature
 import edu.dartmouth.geisel.isidro.watermark.ExcelWatermark
 
 import edu.dartmouth.isidro.util.RandomUtils;
+import utils.Constants
+
 
 class Application @Inject() (val env: AuthenticationEnvironment, val messagesApi: MessagesApi) extends AuthenticationController with I18nSupport with DataRequestTable with RequirementTable with RequestRequirementTable with HasDatabaseConfig[JdbcProfile] {
-
-  val outputDir = "/home/rdj/tmp/isidro"
-  val outputCsv = "data.csv"
-  val outputXlsx = "data.xlsx"
-  val isidroWorksheetName = "isidro"
-  val watermarkImagePath = "/home/rdj/tmp/isidro/watermark.png"
-  val inputSignature = "signature"
-  val inputPassword = "password"
-  val encryptionAlgorithm = "aes256"
-  
   val dbConfig = DatabaseConfigProvider.get[JdbcProfile](Play.current)
   import driver.api._
 
@@ -198,10 +190,10 @@ class Application @Inject() (val env: AuthenticationEnvironment, val messagesApi
       import java.io.File
       //      val filename = dataFile.filename
       //val contentType = dataFile.contentType
-      val filesPath = Paths.get(outputDir, id.toString).toString
-      val csvPath = Paths.get(filesPath, outputCsv).toString
+      val filesPath = Paths.get(Constants.outputDir, id.toString).toString
+      val csvPath = Paths.get(filesPath, Constants.outputCsv).toString
       val csvFile = new File(csvPath)
-      val xlsxPath = Paths.get(filesPath, outputXlsx).toString
+      val xlsxPath = Paths.get(filesPath, Constants.outputXlsx).toString
       val filesDir = new File(filesPath)
       filesDir.mkdirs
 
@@ -221,25 +213,25 @@ class Application @Inject() (val env: AuthenticationEnvironment, val messagesApi
       }
       println("finger")
       try {
-        val workbook = CsvReader.getExcelWorkbook(isidroWorksheetName, csvContents)
+        val workbook = CsvReader.getExcelWorkbook(Constants.isidroWorksheetName, csvContents)
         if (params.contains("watermark")) {
-          ExcelWatermark.watermark(workbook, isidroWorksheetName, new File(watermarkImagePath))
-          logEntry.append("Watermark: " + watermarkImagePath + "\n")
+          ExcelWatermark.watermark(workbook, Constants.isidroWorksheetName, new File(Constants.watermarkImagePath))
+          logEntry.append("Watermark: " + Constants.watermarkImagePath + "\n")
         }
-        println(s"FileOutputStream: $xlsxPath")
+        println(s"FileOutputStream: xlsxPath")
         val os = new FileOutputStream(xlsxPath)
         workbook.write(os)
       } catch {
         case _:Throwable => println("error")
       }
       if (params.contains("signature")) {
-        ExcelSignature.sign(inputSignature, inputPassword, xlsxPath);
+        ExcelSignature.sign(Constants.inputSignature, Constants.inputPassword, xlsxPath);
         logEntry.append("Signed\n");
       }
 
       if (params.contains("encrypt")) {
         val password = RandomUtils.generateRandomBase32NumberString(64);
-        ExcelEncrypt.encrypt(xlsxPath, password, CipherAlgorithm.valueOf(encryptionAlgorithm));
+        ExcelEncrypt.encrypt(xlsxPath, password, CipherAlgorithm.valueOf(Constants.encryptionAlgorithm));
         logEntry.append("Encrypted\n");
       }
 

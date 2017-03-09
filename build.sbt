@@ -11,6 +11,7 @@ scalacOptions ++= Seq("-feature", "-deprecation", "-unchecked", "-language:refle
 resolvers ++= Seq(
 	"Scalaz Bintray Repo" at "https://dl.bintray.com/scalaz/releases",
 	"Atlassian Releases" at "https://maven.atlassian.com/public/",
+    "sonatype-releases" at "https://oss.sonatype.org/content/repositories/releases/",
 	Resolver.sonatypeRepo("snapshots")
 )
 
