@@ -242,10 +242,8 @@ class Application @Inject() (val env: AuthenticationEnvironment, val messagesApi
         "error" -> "Missing file")
     }
 
-    Redirect(routes.Application.editRequest(id, 3)).flashing(
-      "error" -> "Missing file")
-
-//    Redirect(routes.Application.requests)
+    db.run(dataRequests.filter(_.id === id).map(x => (x.status)).update(3))
+    Redirect(routes.Application.requests)
   }
 
 }

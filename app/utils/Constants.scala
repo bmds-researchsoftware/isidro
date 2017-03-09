@@ -1,14 +1,15 @@
 package utils
 
 import play.api.Play
+import java.lang.RuntimeException
 
 object Constants {
-  val outputDir = Play.current.configuration.getString("outputDir").getOrElse("missing")
-  val outputCsv = Play.current.configuration.getString("outputCsv").getOrElse("missing")
-  val outputXlsx = Play.current.configuration.getString("outputXlsx").getOrElse("missing")
-  val isidroWorksheetName = Play.current.configuration.getString("isidroWorksheetName").getOrElse("missing")
-  val watermarkImagePath = Play.current.configuration.getString("watermarkImagePath").getOrElse("missing")
-  val inputSignature = Play.current.configuration.getString("inputSignature").getOrElse("missing")
-  val inputPassword = Play.current.configuration.getString("inputPassword").getOrElse("missing")
-  val encryptionAlgorithm = Play.current.configuration.getString("encryptionAlgorithm").getOrElse("missing")
+  lazy val outputDir = Play.current.configuration.getString("outputDir").getOrElse(throw new RuntimeException("Missing outputDir in application.conf"))
+  lazy val outputCsv = Play.current.configuration.getString("outputCsv").getOrElse(throw new RuntimeException("Missing outputCsv in application.conf"))
+  lazy val outputXlsx = Play.current.configuration.getString("outputXlsx").getOrElse(throw new RuntimeException("Missing outputXlsx in application.conf"))
+  lazy val isidroWorksheetName = Play.current.configuration.getString("isidroWorksheetName").getOrElse(throw new RuntimeException("Missing isidroWorksheetName in application.conf"))
+  lazy val watermarkImagePath = Play.current.configuration.getString("watermarkImagePath").getOrElse(throw new RuntimeException("Missing watermarkImagePath in applicaton.conf"))
+  lazy val inputSignature = Play.current.configuration.getString("inputSignature").getOrElse(throw new RuntimeException("Missing inputSignature in application.conf"))
+  lazy val inputPassword = Play.current.configuration.getString("inputPassword").getOrElse(throw new RuntimeException("Missing inputPasswordr in application.conf"))
+  lazy val encryptionAlgorithm = Play.current.configuration.getString("encryptionAlgorithm").getOrElse(throw new RuntimeException("Missing encryptAlgorithm in application.conf"))
 }
