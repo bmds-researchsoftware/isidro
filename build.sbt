@@ -49,6 +49,7 @@ libraryDependencies ++= Seq(
 
   // library stuff
   "org.csveed" % "csveed" % "0.4.0",
+  "org.apache.commons" % "commons-io" % "1.3.2", // https://mvnrepository.com/artifact/org.apache.commons/commons-io
   "org.apache.poi" % "poi" % "3.14",  // https://mvnrepository.com/artifact/org.apache.poi/poi-ooxml
   "org.apache.poi" % "poi-ooxml" % "3.14", // https://mvnrepository.com/artifact/org.apache.poi/poi-ooxml-schemas
   "org.apache.poi" % "poi-ooxml-schemas" % "3.14", // https://mvnrepository.com/artifact/org.apache.poi/poi-ooxml-schemas

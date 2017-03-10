@@ -182,7 +182,7 @@ class Application @Inject() (val env: AuthenticationEnvironment, val messagesApi
     /*    val phi = request.body.asFormUrlEncoded.head.filter(_._1.startsWith("phi")).map(_._2.mkString)
     for (p <- phi) println(s"phi: $p")*/
 
-    val params = request.body.asFormUrlEncoded.map(_._1).toList
+    val params = request.body.asFormUrlEncoded/*.map(_._1).toList*/
 
     println("handlefile")
     request.body.file("dataFile").map { dataFile =>
@@ -229,20 +229,37 @@ class Application @Inject() (val env: AuthenticationEnvironment, val messagesApi
         logEntry.append("Signed\n");
       }
 
-      if (params.contains("encrypt")) {
-        val password = RandomUtils.generateRandomBase32NumberString(64);
-        ExcelEncrypt.encrypt(xlsxPath, password, CipherAlgorithm.valueOf(Constants.encryptionAlgorithm));
+      val password:Option[String] = if (params.contains("encrypt")) {
+        val pw = RandomUtils.generateRandomBase32NumberString(64);
+        ExcelEncrypt.encrypt(xlsxPath, pw, CipherAlgorithm.valueOf(Constants.encryptionAlgorithm));
         logEntry.append("Encrypted\n");
-      }
+        Some(pw)
+      } else None
 
-      println(logEntry.toString)
-      Ok("File uploaded")
+      val uniqueFile = UniqueFile.generateUniqueFile(xlsxPath, checksum, Constants.storeDir, id, password)
+      new File(xlsxPath).delete
+      filesDir.delete
+
+      // uniqueFileService.save(uniqueFile)
+      logEntry.append(s"File: ${uniqueFile.fileLocation}\n")
+      logEntry.append(s"Send to: {request.email}\n")
+      if (params.contains("notes")) {
+        logEntry.append(s"---Notes---\n${params("notes")}\n")
+      }
+      logEntry.append("---PHI---\n")
+      params.filter(_._1.startsWith("phi")).map(p => logEntry.append(p._2 + "\n"))
+      if (params.contains("other") && (params.get("other") != None)) {
+        logEntry.append("Other phi: " + params.get("other") + "\n")
+      }
+      println(s"email: ${uniqueFile.uniqueName}")
+      //sendDownloadEmail(request, httpServletRequest.getServerName(), uniqueFile.getUniqueName())
+      //requestLogService.log(user, request, "Send download link:\n" + logEntry.toString().trim())
+      println(s"log: ${logEntry.toString}")
+      db.run(dataRequests.filter(_.id === id).map(x => (x.status)).update(3))
     }.getOrElse {
-      Redirect(routes.Application.editRequest(id, 3)).flashing(
-        "error" -> "Missing file")
+      Redirect(routes.Application.editRequest(id, 3)).flashing("error" -> "Missing file")
     }
 
-    db.run(dataRequests.filter(_.id === id).map(x => (x.status)).update(3))
     Redirect(routes.Application.requests)
   }
 
