@@ -6,7 +6,7 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.Date
+import java.sql.Date
 
 import org.apache.commons.io.FileUtils
 import org.apache.commons.lang3.time.DateUtils
@@ -18,9 +18,10 @@ case class UniqueFile(
   password: Option[String],
   fileLocation: String,
   uniqueName: String,
-  request: Int,
+  requestId: Int,
   fileName: String,
-  dateCreated: Date) {
+  dateCreated: java.sql.Date
+) {
 
   /**
    * Checks if this file is more than configured number of days old.
@@ -29,12 +30,12 @@ case class UniqueFile(
    * @return if the file has expired.
    */
   def isFileExpired(filesExpiration: Int)={
-    val numDaysAgo = DateUtils.addDays(new Date, -filesExpiration)
+    val numDaysAgo = DateUtils.addDays(new java.util.Date, -filesExpiration)
     dateCreated.before(numDaysAgo)
   }
 }
 
-object UniqueFile {
+object UniqueFileServ {
   /**
    * Associates given file with randomly generated unique identifier by copying and storing it in
    * the given storage location and then returning DAO for insertion into database.
@@ -54,6 +55,6 @@ object UniqueFile {
     FileUtils.copyFile(new File(inputPath), path.toFile)
 
     val uniqueName = RandomUtils.generateRandom512BitBase32NumberString
-    new UniqueFile(false, password, path.toString, uniqueName, id, originalFileName, new Date)
+    new UniqueFile(false, password, path.toString, uniqueName, id, originalFileName, new java.sql.Date(0))
   }
 }

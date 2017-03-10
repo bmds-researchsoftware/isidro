@@ -3,7 +3,7 @@ package tables
 import models.DataRequest
 import slick.driver.JdbcProfile
 
-trait DataRequestTable extends UserTable{
+trait DataRequestTable extends UserTable {
   protected val driver: JdbcProfile
   import driver.api._
   class DataRequests(tag: Tag) extends Table[DataRequest](tag, "request") {

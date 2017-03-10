@@ -34,11 +34,12 @@ import edu.dartmouth.isidro.util.RandomUtils;
 import utils.Constants
 
 
-class Application @Inject() (val env: AuthenticationEnvironment, val messagesApi: MessagesApi) extends AuthenticationController with I18nSupport with DataRequestTable with RequirementTable with RequestRequirementTable with HasDatabaseConfig[JdbcProfile] {
+class Application @Inject() (val env: AuthenticationEnvironment, val messagesApi: MessagesApi) extends AuthenticationController with I18nSupport with DataRequestTable with RequirementTable with RequestRequirementTable with UniqueFileTable with HasDatabaseConfig[JdbcProfile] {
   val dbConfig = DatabaseConfigProvider.get[JdbcProfile](Play.current)
   import driver.api._
 
   val dataRequests = TableQuery[DataRequests]
+  val uniqueFiles = TableQuery[UniqueFiles]
   val requestRequirements = TableQuery[RequestRequirements]
   val requirements = TableQuery[Requirements]
 
@@ -236,11 +237,12 @@ class Application @Inject() (val env: AuthenticationEnvironment, val messagesApi
         Some(pw)
       } else None
 
-      val uniqueFile = UniqueFile.generateUniqueFile(xlsxPath, checksum, Constants.storeDir, id, password)
+      val uniqueFile = UniqueFileServ.generateUniqueFile(xlsxPath, checksum, Constants.storeDir, id, password)
       new File(xlsxPath).delete
       filesDir.delete
 
-      // uniqueFileService.save(uniqueFile)
+      db.run(uniqueFiles += uniqueFile)
+
       logEntry.append(s"File: ${uniqueFile.fileLocation}\n")
       logEntry.append(s"Send to: {request.email}\n")
       if (params.contains("notes")) {

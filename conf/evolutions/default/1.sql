@@ -16,11 +16,10 @@ CREATE TABLE "request" (
 
 DROP TABLE IF EXISTS "request_requirement";
 CREATE TABLE "request_requirement" (
-  "requestRequirementId" SERIAL,
   "requestId" int NOT NULL,
   "requirementId" int NOT NULL,
-  "requirementTime" int NOT NULL,
-  PRIMARY KEY ("requestRequirementId")
+  "completed" boolean NOT NULL default FALSE,
+  PRIMARY KEY ("requestId", "requirementId")
 );
 
 DROP TABLE IF EXISTS "requirement";
@@ -53,6 +52,19 @@ CREATE TABLE "isidro_user" (
   PRIMARY KEY ("userId")
 );
 
+DROP TABLE IF EXISTS "unique_file";
+CREATE TABLE "unique_file" (
+  "isDeleted" boolean NOT NULL DEFAULT FALSE,
+  "password" varchar(254) DEFAULT NULL,
+  "fileLocation" varchar(254) NOT NULL,
+  "uniqueName" varchar(254) NOT NULL,
+  "requestId" int NOT NULL,
+  "fileName" varchar(254) NOT NULL DEFAULT '',
+  "dateCreated" date NOT NULL DEFAULT now(),
+  PRIMARY KEY ("uniqueName")
+);
+
+
 INSERT INTO "isidro_user" VALUES (1,'','John','Higgins','john@dartmouth.edu',TRUE,'$2a$10$Mtcq4iFwL6tRhekgpH3jxeckRUqu8tKcM0JpmdsUz7srLtAbvDW06','master');
 
 DROP TABLE IF EXISTS "user_requirement_log";
@@ -73,3 +85,4 @@ DROP TABLE IF EXISTS "requirement";
 DROP TABLE IF EXISTS "status";
 DROP TABLE IF EXISTS "isidro_user";
 DROP TABLE IF EXISTS "user_requirement_log";
+DROP TABLE IF EXISTS "unique_file";
