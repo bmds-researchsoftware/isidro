@@ -49,7 +49,7 @@ class Auth @Inject() (val env: AuthenticationEnvironment, val messagesApi: Messa
    */
   def startSignUp = UserAwareAction.async { implicit request =>
     Future.successful(request.identity match {
-      case Some(_) => Redirect(routes.Application.index)
+      case Some(_) => Redirect(routes.Isidro.index)
       case None => Ok(viewsAuth.signUp(signUpForm))
     })
   }
@@ -129,7 +129,7 @@ class Auth @Inject() (val env: AuthenticationEnvironment, val messagesApi: Messa
    */
   def signIn = UserAwareAction.async { implicit request =>
     Future.successful(request.identity match {
-      case Some(user) => Redirect(routes.Application.index)
+      case Some(user) => Redirect(routes.Isidro.index)
       case None => Ok(viewsAuth.signIn(signInForm))
     })
   }
@@ -147,7 +147,7 @@ class Auth @Inject() (val env: AuthenticationEnvironment, val messagesApi: Messa
             case Some(user) => for {
               authenticator <- env.authenticatorService.create(loginInfo).map(env.authenticatorWithRememberMe(_, rememberMe))
               cookie <- env.authenticatorService.init(authenticator)
-              result <- env.authenticatorService.embed(cookie, Redirect(routes.Application.requests))
+              result <- env.authenticatorService.embed(cookie, Redirect(routes.Isidro.requests))
             } yield {
               env.publish(LoginEvent(user, request, request2Messages))
               result
@@ -169,7 +169,7 @@ class Auth @Inject() (val env: AuthenticationEnvironment, val messagesApi: Messa
    */
   def signOut = SecuredAction.async { implicit request =>
     env.publish(LogoutEvent(request.identity, request, request2Messages))
-    env.authenticatorService.discard(request.authenticator, Redirect(routes.Application.index))
+    env.authenticatorService.discard(request.authenticator, Redirect(routes.Isidro.index))
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -182,7 +182,7 @@ class Auth @Inject() (val env: AuthenticationEnvironment, val messagesApi: Messa
    */
   def forgotPassword = UserAwareAction.async { implicit request =>
     Future.successful(request.identity match {
-      case Some(_) => Redirect(routes.Application.index)
+      case Some(_) => Redirect(routes.Isidro.index)
       case None => Ok(viewsAuth.forgotPassword(emailForm))
     })
   }
@@ -289,7 +289,7 @@ class Auth @Inject() (val env: AuthenticationEnvironment, val messagesApi: Messa
           for {
             _ <- env.authInfoRepository.update(loginInfo, env.authInfo(passwords._2))
             authenticator <- env.authenticatorService.create(loginInfo)
-            result <- env.authenticatorService.renew(authenticator, Redirect(routes.Application.myAccount).flashing("success" -> Messages("auth.password.changed")))
+            result <- env.authenticatorService.renew(authenticator, Redirect(routes.Isidro.myAccount).flashing("success" -> Messages("auth.password.changed")))
           } yield result
         }.recover {
           case e: ProviderException => BadRequest(viewsAuth.changePassword(changePasswordForm.withError("current", Messages("auth.currentpwd.incorrect"))))

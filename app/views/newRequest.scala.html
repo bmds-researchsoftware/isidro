@@ -6,7 +6,7 @@
 @views.html.templates.logged("New Request", tab = "newrequest") {
 @tags.alertFromRequest(request, "error")
 
-@b3.form(routes.Application.handleNewRequest) {
+@b3.form(routes.Isidro.handleNewRequest) {
   <fieldset class="requestform">
     <legend>@Messages("newRequest.title")</legend>
     <label for="title">Title:</label>

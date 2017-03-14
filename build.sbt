@@ -53,6 +53,8 @@ libraryDependencies ++= Seq(
   "org.apache.poi" % "poi" % "3.14",  // https://mvnrepository.com/artifact/org.apache.poi/poi-ooxml
   "org.apache.poi" % "poi-ooxml" % "3.14", // https://mvnrepository.com/artifact/org.apache.poi/poi-ooxml-schemas
   "org.apache.poi" % "poi-ooxml-schemas" % "3.14", // https://mvnrepository.com/artifact/org.apache.poi/poi-ooxml-schemas
+
+  "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % "test", // scala test + play
   filters
 )
 

@@ -25,4 +25,13 @@ object Mailer {
     )
   }
 
+  def sendDownloadEmail(email: String, link: String)(implicit ms: MailService, m: Messages) {
+    ms.sendEmailAsync(email)(
+      subject = Messages("mail.download.subject"),
+      bodyHtml = mails.downloadLink(email, link),
+      bodyText = mails.downloadLink(email, link)
+    )
+  }
+  
+
 }

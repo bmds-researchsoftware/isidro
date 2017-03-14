@@ -8,6 +8,7 @@ import play.api.libs.concurrent.Execution.Implicits._
 import play.api.libs.mailer._
 import play.api.Configuration
 import scala.concurrent.duration._
+import java.net.URL
 
 @ImplementedBy(classOf[MailServiceImpl])
 trait MailService {
@@ -26,4 +27,5 @@ class MailServiceImpl @Inject() (mailerClient: MailerClient, val conf: Configura
   }
   def sendEmail(recipients: String*)(subject: String, bodyHtml: String, bodyText: String) =
     mailerClient.send(Email(subject, from, recipients, Some(bodyText), Some(bodyHtml)))
+
 }

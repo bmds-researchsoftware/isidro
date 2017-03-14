@@ -55,6 +55,6 @@ object UniqueFileServ {
     FileUtils.copyFile(new File(inputPath), path.toFile)
 
     val uniqueName = RandomUtils.generateRandom512BitBase32NumberString
-    new UniqueFile(false, password, path.toString, uniqueName, id, originalFileName, new java.sql.Date(0))
+    new UniqueFile(false, password, path.toString, uniqueName, id, originalFileName, new java.sql.Date(new java.util.Date().getTime))
   }
 }

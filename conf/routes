@@ -18,19 +18,21 @@ POST /change-password          controllers.Auth.handleChangePassword
 GET  /denied                   controllers.Auth.accessDenied
 
 # Requests
-GET  /                         controllers.Application.index
-GET  /myrequests               controllers.Application.myRequests
-GET  /requests                 controllers.Application.requests
-GET  /requests/closed          controllers.Application.closedRequests
-GET  /newRequest               controllers.Application.newRequest
-GET  /myaccount                controllers.Application.myAccount
-GET  /request/:rid/edit:state  controllers.Application.editRequest(rid: Int, state: Int)
+GET  /                         controllers.Isidro.index
+GET  /myrequests               controllers.Isidro.myRequests
+GET  /requests                 controllers.Isidro.requests
+GET  /requests/closed          controllers.Isidro.closedRequests
+GET  /newRequest               controllers.Isidro.newRequest
+GET  /myaccount                controllers.Isidro.myAccount
+GET  /request/:rid/edit:state  controllers.Isidro.editRequest(rid: Int, state: Int)
+GET  /downloads/download/:uid  controllers.Isidro.downloadFile(uid: String)
+GET  /downloads/:uid           controllers.Isidro.download(uid: String)
 
 # Form handling
-POST /newRequest               controllers.Application.handleNewRequest
-POST /request/:rid/edit1       controllers.Application.handleRequirements(rid: Int)
-POST /request/:rid/edit2       controllers.Application.handleProgress(rid: Int)
-POST /request/:rid/edit3       controllers.Application.handleFile(rid: Int)
+POST /newRequest               controllers.Isidro.handleNewRequest
+POST /request/:rid/edit1       controllers.Isidro.handleRequirements(rid: Int)
+POST /request/:rid/edit2       controllers.Isidro.handleProgress(rid: Int)
+POST /request/:rid/edit3       controllers.Isidro.handleFile(rid: Int)
 
 # Map static resources from the /public folder to the /assets URL path
 GET  /assets/*file             controllers.Assets.at(path="/public", file)

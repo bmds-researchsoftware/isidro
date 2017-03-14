@@ -6,6 +6,8 @@ import utils.silhouette._
 import play.api.data._
 import play.api.data.Forms._
 import play.api._
+import play.api.libs.Files.TemporaryFile
+import play.api.mvc.Action
 import play.api.Play.current
 import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
 import slick.driver.JdbcProfile
@@ -20,21 +22,26 @@ import views.html.{ auth => viewsAuth }
 import java.io.FileOutputStream
 import java.io.BufferedOutputStream
 import java.io.File
+import java.net.MalformedURLException
+import javax.mail.MessagingException
+import java.net.URL
 import java.nio.file.Paths
-import org.apache.poi.poifs.crypt.CipherAlgorithm;
-
+import org.apache.poi.poifs.crypt.CipherAlgorithm
 import edu.dartmouth.geisel.isidro.checksum.ExcelChecksum
 import edu.dartmouth.geisel.isidro.encrypt.ExcelEncrypt
 import edu.dartmouth.geisel.isidro.read.CsvReader
 import edu.dartmouth.geisel.isidro.read.DataIntegrityMismatchException
 import edu.dartmouth.geisel.isidro.signature.ExcelSignature
 import edu.dartmouth.geisel.isidro.watermark.ExcelWatermark
+import edu.dartmouth.isidro.util.TextUtils
 
-import edu.dartmouth.isidro.util.RandomUtils;
+import edu.dartmouth.isidro.util.RandomUtils
 import utils.Constants
+import utils.MailService
+import utils.Mailer
 
-
-class Application @Inject() (val env: AuthenticationEnvironment, val messagesApi: MessagesApi) extends AuthenticationController with I18nSupport with DataRequestTable with RequirementTable with RequestRequirementTable with UniqueFileTable with HasDatabaseConfig[JdbcProfile] {
+class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: MessagesApi, val mailService: MailService) extends AuthenticationController with I18nSupport with DataRequestTable with RequirementTable with RequestRequirementTable with UniqueFileTable with HasDatabaseConfig[JdbcProfile] {
+  implicit val ms = mailService
   val dbConfig = DatabaseConfigProvider.get[JdbcProfile](Play.current)
   import driver.api._
 
@@ -78,7 +85,7 @@ class Application @Inject() (val env: AuthenticationEnvironment, val messagesApi
   }
 
   def closedRequests = SecuredAction(WithService("master")).async { implicit request =>
-    db.run(dataRequests.filter(_.status === 7).result).map(req =>
+    db.run(dataRequests.filter(_.status === Constants.closed).result).map(req =>
       Ok(views.html.brokerRequests(req.toList, true)))
   }
 
@@ -107,7 +114,7 @@ class Application @Inject() (val env: AuthenticationEnvironment, val messagesApi
           case Some(theRequest) => {
             Ok(views.html.editRequirements(theRequest, req._2._1.toList, req._2._2.toList))
           }
-          case _ => Redirect(routes.Application.requests)
+          case _ => Redirect(routes.Isidro.requests)
         }
       })
     } else if (state==2) {
@@ -121,7 +128,7 @@ class Application @Inject() (val env: AuthenticationEnvironment, val messagesApi
           case Some(theRequest) => {
             Ok(views.html.trackRequirements(theRequest, req._2.toList))
           }
-          case _ => Redirect(routes.Application.requests)
+          case _ => Redirect(routes.Isidro.requests)
         }
       })
     } else if (state==3) {
@@ -130,12 +137,12 @@ class Application @Inject() (val env: AuthenticationEnvironment, val messagesApi
           case Some(theRequest) => {
             Ok(views.html.sendFile(theRequest))
           }
-          case _ => Redirect(routes.Application.requests)
+          case _ => Redirect(routes.Isidro.requests)
         }
       })
     }
-    else if (state==1) Future.successful(Redirect(routes.Application.requests))
-    else Future.successful(Redirect(routes.Application.requests))
+    else if (state==1) Future.successful(Redirect(routes.Isidro.requests))
+    else Future.successful(Redirect(routes.Isidro.requests))
   }
 
   def handleProgress(rid: Int) = SecuredAction { implicit request =>
@@ -147,7 +154,7 @@ class Application @Inject() (val env: AuthenticationEnvironment, val messagesApi
     } yield c.completed
     db.run(qIncomplete.update(false)).map(rows => {
       // Update request state based on whether any requirements are left incomplete
-      db.run(dataRequests.filter(_.id === rid).map(x => (x.status)).update(if (rows>0) 1 else 2))
+      db.run(dataRequests.filter(_.id === rid).map(x => (x.status)).update(if (rows>0) Constants.awaitingRequirements else Constants.readyToSend))
     })
 
     // Update db for all complete requirements for this request
@@ -156,15 +163,15 @@ class Application @Inject() (val env: AuthenticationEnvironment, val messagesApi
     } yield c.completed
     db.run(qComplete.update(true))
 
-    Redirect(routes.Application.requests)
+    Redirect(routes.Isidro.requests)
   }
 
   def handleRequirements(rid: Int) = SecuredAction.async { implicit request =>
     val reqs = request.body.asFormUrlEncoded.head.map(_._1).filter(_.startsWith("rq")).map(_.substring(2).toInt)
     val rrs = reqs.map(new RequestRequirement(rid, _))
     Await.result(db.run(requestRequirements.filter(_.request === rid).delete), Duration.Inf)
-    db.run(dataRequests.filter(_.id === rid).map(x => (x.status)).update(1))
-    db.run(requestRequirements ++= rrs).map(_ => Redirect(routes.Application.requests))
+    db.run(dataRequests.filter(_.id === rid).map(x => (x.status)).update(Constants.awaitingRequirements))
+    db.run(requestRequirements ++= rrs).map(_ => Redirect(routes.Isidro.requests))
   }
 
   def handleNewRequest = SecuredAction.async { implicit request =>
@@ -172,11 +179,65 @@ class Application @Inject() (val env: AuthenticationEnvironment, val messagesApi
       formWithErrors => Future.successful(BadRequest(views.html.newRequest(formWithErrors))),
       req => {
         val fullReq = req.copy(userId = request.identity.id)
-        db.run(dataRequests += fullReq).map(_ => Redirect(routes.Application.requests))
+        db.run(dataRequests += fullReq).map(_ => Redirect(routes.Isidro.requests))
       }
     )
   }
 
+  def downloadFile(uniqueName: String) = Action.async {
+    val fileq = for {
+      uf <- uniqueFiles if uf.uniqueName === uniqueName
+      r <- dataRequests if uf.requestId === r.id
+    } yield (uf, r)
+    db.run(fileq.result).map(res => res.headOption match {
+      case Some((uf, req)) => {
+        val isFileExpired = uf.isFileExpired(Constants.fileExpiration)
+        val filePath = new File(uf.fileLocation)
+        val fileName = uf.fileName
+        println(s"fileLocation: ${uf.fileLocation}")
+        println(s"fileName: ${uf.fileName}")
+
+        if (uf.isFileExpired(Constants.fileExpiration)) {
+          println(s"""Data file "${uf.fileLocation}" expired and deleted.""")
+          Redirect(routes.Isidro.index)
+        } else if (!filePath.exists || uf.isDeleted) {
+          println(s"""Data file "${uf.fileLocation}" does not exist on disk.""")
+          Redirect(routes.Isidro.index)
+        } else {
+          println("dl")
+          val password = uf.password
+          val fileToServe = TemporaryFile(filePath)
+          if (password != None) {
+            //mailHandler.sendPasswordEmail(req.email, password, None, req)
+          }
+          Ok.sendFile(fileToServe.file, onClose = () => { fileToServe.clean })
+        }
+      }
+      case _ => {
+        println(s"no file: $uniqueName")
+        Redirect(routes.Isidro.index)
+      }
+    })
+  }
+
+  def download(uid: String) = UserAwareAction.async { implicit request =>
+    println(s"download: $uid")
+    val q = for {
+      uf <- uniqueFiles if uf.uniqueName === uid
+      r <- dataRequests if uf.requestId === r.id
+    } yield (uf, r)
+
+    db.run(q.result).map { res => res.headOption match {
+      case Some((uf, r)) => {
+        Ok(views.html.downloads.download(uid))
+      }
+      case _ => {
+        println(s"Data file not found: $uid")
+        Redirect(routes.Isidro.index)
+      }
+        
+    }}
+  }
 
   def handleFile(id: Int) = SecuredAction(parse.multipartFormData) { implicit request =>
     val logEntry = new StringBuilder()
@@ -196,9 +257,10 @@ class Application @Inject() (val env: AuthenticationEnvironment, val messagesApi
       val csvFile = new File(csvPath)
       val xlsxPath = Paths.get(filesPath, Constants.outputXlsx).toString
       val filesDir = new File(filesPath)
+      println(s"filesPath: $filesPath")
       filesDir.mkdirs
 
-      println("move")
+      println(s"move to $csvPath")
       dataFile.ref.moveTo(csvFile)
 
       val csvContents = CsvReader.read(csvPath)
@@ -219,7 +281,7 @@ class Application @Inject() (val env: AuthenticationEnvironment, val messagesApi
           ExcelWatermark.watermark(workbook, Constants.isidroWorksheetName, new File(Constants.watermarkImagePath))
           logEntry.append("Watermark: " + Constants.watermarkImagePath + "\n")
         }
-        println(s"FileOutputStream: xlsxPath")
+        println(s"FileOutputStream: $xlsxPath")
         val os = new FileOutputStream(xlsxPath)
         workbook.write(os)
       } catch {
@@ -254,15 +316,43 @@ class Application @Inject() (val env: AuthenticationEnvironment, val messagesApi
         logEntry.append("Other phi: " + params.get("other") + "\n")
       }
       println(s"email: ${uniqueFile.uniqueName}")
-      //sendDownloadEmail(request, httpServletRequest.getServerName(), uniqueFile.getUniqueName())
+      sendDownloadEmail(id, uniqueFile.uniqueName)
       //requestLogService.log(user, request, "Send download link:\n" + logEntry.toString().trim())
       println(s"log: ${logEntry.toString}")
-      db.run(dataRequests.filter(_.id === id).map(x => (x.status)).update(3))
+      db.run(dataRequests.filter(_.id === id).map(x => (x.status)).update(Constants.awaitingDownload))
     }.getOrElse {
-      Redirect(routes.Application.editRequest(id, 3)).flashing("error" -> "Missing file")
+      Redirect(routes.Isidro.editRequest(id, 3)).flashing("error" -> "Missing file")
     }
 
-    Redirect(routes.Application.requests)
+    Redirect(routes.Isidro.requests)
   }
 
+
+  /**
+   * Send an email with the data file download link.
+   * 
+   * @param request The request
+   * @param uniqueName Data file identifier
+   * @throws MessagingException If thrown by mailHandler
+   * @throws MalformedURLException If resulting URL is malformed
+   */
+  @throws(classOf[MessagingException])
+  @throws(classOf[MalformedURLException])
+  private def sendDownloadEmail(rid: Int, uniqueName: String):Unit = {
+    println("sdl")
+    val q = for {
+      d <- dataRequests if d.id === rid
+    } yield(d)
+    db.run(q.result).map(dr => {
+      dr.headOption match {
+        case Some(theRequest) => {
+          println(s"rez ${theRequest.email}")
+          val url = new URL(TextUtils.formatText("%s/downloads/%s", Constants.serverName, uniqueName))
+          println(s"url: $url")
+          Mailer.sendDownloadEmail(theRequest.email, url.toString)
+        }
+        case _ => Unit
+      }
+    })
+  }
 }
