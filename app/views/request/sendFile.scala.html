@@ -1,6 +1,7 @@
 @(r: DataRequest)(implicit request: RequestHeader, user: User, messages: Messages)
 
 @import controllers.routes
+@import helper._
 
 @views.html.templates.logged(title = Messages("send.file.title"), tab = "update") {
   @tags.alertFromRequest(request, "success")
@@ -16,6 +17,7 @@
     @requestBox(r)
     <br/>
     <form method="post" enctype="multipart/form-data">
+      @CSRF.formField
       <div class="row">
         <div class="col-sm-12">
           <fieldset>
@@ -50,7 +52,7 @@
           <input id="other" name="other" />
         </div>
       </div>
-      @submit(2, "Edit Requirement Progress")
+      @tags.submit(2, "Edit Requirement Progress")
     </form>
   </div>
 }

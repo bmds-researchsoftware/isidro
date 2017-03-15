@@ -1,6 +1,7 @@
 @(r: DataRequest, req: List[(Int, Boolean, String)])(implicit request: RequestHeader, user: User, messages: Messages)
 
 @import controllers.routes
+@import helper._
 
 @views.html.templates.logged(title = Messages("requirement.progress.title"), tab = "update") {
 	
@@ -15,6 +16,7 @@
       </div>
       <p />
       <form method="post">
+        @CSRF.formField
         @requestBox(r)
         <div class="row">
           <div class="col-sm-4 col-sm-offset-2 left">
@@ -26,7 +28,7 @@
             </div>  
           </div>
         </div>
-        @submit(1, "Edit Requirements")
+        @tags.submit(1, "Edit Requirements")
       </form>
     </div>
 }

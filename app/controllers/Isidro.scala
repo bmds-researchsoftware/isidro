@@ -70,13 +70,13 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
     Future.successful(Ok(views.html.myAccount()))
   }
 
-  def myRequests = SecuredAction.async { implicit request =>
+  /* def myRequests = SecuredAction.async { implicit request =>
     db.run(dataRequests.filter(_.userId === request.identity.id)result).map(req =>
       Ok(views.html.requests(req.toList)))
-  }
+  } */
   
   def newRequest = SecuredAction.async { implicit request =>
-    Future.successful(Ok(views.html.newRequest(newRequestForm)))
+    Future.successful(Ok(views.html.request.newRequest(newRequestForm)))
   }
 
   def requests = SecuredAction(WithService("master")).async { implicit request =>
@@ -89,7 +89,7 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
       Ok(views.html.brokerRequests(req.toList, true)))
   }
 
-  def request(rid: Int, state: Int) = SecuredAction.async { implicit request =>
+  /*def request(rid: Int, state: Int) = SecuredAction.async { implicit request =>
     val q = for {
       r <- dataRequests if r.id === rid
     } yield(r)
@@ -97,7 +97,7 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
     db.run(q.result).map(req => {
       Ok(views.html.request(req.headOption, state))
     })
-  }
+  }*/
 
   def editRequest(rid: Int, state: Int) = SecuredAction(WithService("master")).async { implicit request =>
     val q = for {
@@ -113,7 +113,7 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
       db.run(q.result.zip(requirements.sortBy(r => r.order).result.zip(q3.result))).map(req => {
         req._1.headOption match {
           case Some(theRequest) => {
-            Ok(views.html.editRequirements(theRequest, req._2._1.toList, req._2._2.toList))
+            Ok(views.html.request.editRequirements(theRequest, req._2._1.toList, req._2._2.toList))
           }
           case _ => Redirect(routes.Isidro.requests)
         }
@@ -127,7 +127,7 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
       db.run(q.result.zip(q3.result)).map(req => {
         req._1.headOption match {
           case Some(theRequest) => {
-            Ok(views.html.trackRequirements(theRequest, req._2.toList))
+            Ok(views.html.request.trackRequirements(theRequest, req._2.toList))
           }
           case _ => Redirect(routes.Isidro.requests)
         }
@@ -136,7 +136,7 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
       db.run(q.result).map(req => {
         req.headOption match {
           case Some(theRequest) => {
-            Ok(views.html.sendFile(theRequest))
+            Ok(views.html.request.sendFile(theRequest))
           }
           case _ => Redirect(routes.Isidro.requests)
         }
@@ -145,7 +145,16 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
       db.run(q.result).map(req => {
         req.headOption match {
           case Some(theRequest) => {
-            Ok(views.html.editAwaiting(theRequest))
+            Ok(views.html.request.editAwaiting(theRequest))
+          }
+          case _ => Redirect(routes.Isidro.requests)
+        }
+      })
+    } else if (state==Constants.downloaded) {
+      db.run(q.result).map(req => {
+        req.headOption match {
+          case Some(theRequest) => {
+            Ok(views.html.request.editDownloaded(theRequest))
           }
           case _ => Redirect(routes.Isidro.requests)
         }
@@ -185,7 +194,7 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
 
   def handleNewRequest = SecuredAction.async { implicit request =>
     newRequestForm.bindFromRequest.fold(
-      formWithErrors => Future.successful(BadRequest(views.html.newRequest(formWithErrors))),
+      formWithErrors => Future.successful(BadRequest(views.html.request.newRequest(formWithErrors))),
       req => {
         val fullReq = req.copy(userId = request.identity.id, status = Constants.newRequest)
         db.run(dataRequests += fullReq).map(_ => Redirect(routes.Isidro.requests))
@@ -211,6 +220,13 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
       }
     })
   }
+
+  def handleClose(rid: Int) = SecuredAction { implicit request =>
+    Await.result(db.run(dataRequests.filter(_.id === rid).map(x => (x.status)).update(Constants.closed)),
+      Duration.Inf)    
+    Redirect(routes.Isidro.requests)
+  }
+
 
   def downloadFile(uniqueName: String) = Action.async {
     val fileq = for {

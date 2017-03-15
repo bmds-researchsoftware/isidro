@@ -19,7 +19,7 @@ GET  /denied                   controllers.Auth.accessDenied
 
 # Requests
 GET  /                         controllers.Isidro.index
-GET  /myrequests               controllers.Isidro.myRequests
+# GET  /myrequests               controllers.Isidro.myRequests
 GET  /requests                 controllers.Isidro.requests
 GET  /requests/closed          controllers.Isidro.closedRequests
 GET  /newRequest               controllers.Isidro.newRequest
@@ -34,6 +34,7 @@ POST /request/:rid/edit1       controllers.Isidro.handleRequirements(rid: Int)
 POST /request/:rid/edit2       controllers.Isidro.handleProgress(rid: Int)
 POST /request/:rid/edit3       controllers.Isidro.handleFile(rid: Int)
 POST /request/:rid/edit4       controllers.Isidro.handleWithdrawFile(rid: Int)
+POST /request/:rid/edit5       controllers.Isidro.handleClose(rid: Int)
 
 # Map static resources from the /public folder to the /assets URL path
 GET  /assets/*file             controllers.Assets.at(path="/public", file)

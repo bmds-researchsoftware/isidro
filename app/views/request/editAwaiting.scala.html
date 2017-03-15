@@ -1,0 +1,29 @@
+@(r: DataRequest)(implicit request: RequestHeader, user: User, messages: Messages)
+
+@import controllers.routes
+@import helper._
+
+@views.html.templates.logged(title = Messages("editAwaiting.title", r.id, r.title), tab = "update") {
+  @tags.alertFromRequest(request, "success")
+  <hr />
+  <div class="container-fluid content">
+    <div class="row">
+      <div class="col-sm-8 col-sm-offset-2 requpdate">
+        <div class="pageheader">@Messages("editAwaiting.title", r.id, r.title)</div>
+        <h5>@Messages("editAwaiting.caption")</h5>
+      </div>
+    </div>
+    <form method="post">
+      @CSRF.formField
+      @requestBox(r)
+      <p>
+        <div class="row">
+          <div class="col-sm-12 submitrow">
+            <input type="submit" value="Delete File (Prevent download)" /> <a href="@routes.Isidro.requests" class="button">Cancel</a> 
+          </div>
+        </div>
+      </p>
+    </form>
+  </div>
+}
+

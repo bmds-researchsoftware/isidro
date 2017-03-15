@@ -2,11 +2,14 @@
 @import b3.vertical.fieldConstructor
 @import controllers.routes
 @import models.DataRequest
+@import helper._
 
 @views.html.templates.logged("New Request", tab = "newrequest") {
 @tags.alertFromRequest(request, "error")
 
 @b3.form(routes.Isidro.handleNewRequest) {
+  @CSRF.formField
+
   <fieldset class="requestform">
     <legend>@Messages("newRequest.title")</legend>
     <label for="title">Title:</label>
