@@ -80,7 +80,7 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
   }
 
   def requests = SecuredAction(WithService("master")).async { implicit request =>
-    db.run(dataRequests.result).map(req =>
+    db.run(dataRequests.filter(_.status =!= Constants.closed).result).map(req =>
       Ok(views.html.brokerRequests(req.toList)))
   }
 
