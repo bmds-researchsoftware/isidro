@@ -105,7 +105,11 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
     } yield(r)
 
     println(s"edit $state ${Constants.awaitingDownload}")
-    if (state==Constants.newRequest) {
+    if (state==Constants.editRequest) {
+      db.run(q.result).map(req => {
+        Ok(views.html.request.editRequest(rid, newRequestForm.fill(req.head)))
+      })
+    } else if (state==Constants.newRequest) {
       val q3 = for {
         rr <- requestRequirements if rr.request === rid
       } yield (rr.requirement)
@@ -192,12 +196,19 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
     db.run(requestRequirements ++= rrs).map(_ => Redirect(routes.Isidro.requests))
   }
 
-  def handleNewRequest = SecuredAction.async { implicit request =>
+  def handleNewRequest = handleEditRequest(-1)
+
+  def handleEditRequest(rid: Int) = SecuredAction.async { implicit request =>
     newRequestForm.bindFromRequest.fold(
       formWithErrors => Future.successful(BadRequest(views.html.request.newRequest(formWithErrors))),
       req => {
-        val fullReq = req.copy(userId = request.identity.id, status = Constants.newRequest)
-        db.run(dataRequests += fullReq).map(_ => Redirect(routes.Isidro.requests))
+        if (rid < 0) { // todo: change this to Option
+          val fullReq = req.copy(userId = request.identity.id, status = Constants.newRequest)
+          db.run(dataRequests += fullReq).map(_ => Redirect(routes.Isidro.requests))
+        } else {
+          val fullReq = req.copy(id = rid, userId = request.identity.id, status = Constants.newRequest)
+          db.run(dataRequests.filter(_.id === rid).update(fullReq)).map(_ => Redirect(routes.Isidro.requests))
+        }
       }
     )
   }
@@ -226,7 +237,6 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
       Duration.Inf)    
     Redirect(routes.Isidro.requests)
   }
-
 
   def downloadFile(uniqueName: String) = Action.async {
     val fileq = for {

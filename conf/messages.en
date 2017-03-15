@@ -48,7 +48,9 @@ request.title=Request Details
 brokerRequests=Requests
 newRequest=New Request
 myRequests=My Requests
-
+edit.request=Update Request
+editRequest.title=Update Request
+updateRequest=Submit
 submit=Submit
 reset=Reset
 back=Back
