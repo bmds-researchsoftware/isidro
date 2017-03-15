@@ -33,6 +33,11 @@ case class UniqueFile(
     val numDaysAgo = DateUtils.addDays(new java.util.Date, -filesExpiration)
     dateCreated.before(numDaysAgo)
   }
+
+  def delete = {
+    val filePath = new File(fileLocation)
+    filePath.delete
+  }
 }
 
 object UniqueFileServ {

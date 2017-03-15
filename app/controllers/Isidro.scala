@@ -104,7 +104,8 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
       r <- dataRequests if r.id === rid
     } yield(r)
 
-    if (state==1) {
+    println(s"edit $state ${Constants.awaitingDownload}")
+    if (state==Constants.newRequest) {
       val q3 = for {
         rr <- requestRequirements if rr.request === rid
       } yield (rr.requirement)
@@ -117,7 +118,7 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
           case _ => Redirect(routes.Isidro.requests)
         }
       })
-    } else if (state==2) {
+    } else if (state==Constants.awaitingRequirements) {
       val q3 = for {
         rr <- requestRequirements if rr.request === rid
         r <- requirements if r.id === rr.requirement
@@ -131,7 +132,7 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
           case _ => Redirect(routes.Isidro.requests)
         }
       })
-    } else if (state==3) {
+    } else if (state==Constants.readyToSend) {
       db.run(q.result).map(req => {
         req.headOption match {
           case Some(theRequest) => {
@@ -140,8 +141,16 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
           case _ => Redirect(routes.Isidro.requests)
         }
       })
+    } else if (state==Constants.awaitingDownload) {
+      db.run(q.result).map(req => {
+        req.headOption match {
+          case Some(theRequest) => {
+            Ok(views.html.editAwaiting(theRequest))
+          }
+          case _ => Redirect(routes.Isidro.requests)
+        }
+      })
     }
-    else if (state==1) Future.successful(Redirect(routes.Isidro.requests))
     else Future.successful(Redirect(routes.Isidro.requests))
   }
 
@@ -178,10 +187,29 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
     newRequestForm.bindFromRequest.fold(
       formWithErrors => Future.successful(BadRequest(views.html.newRequest(formWithErrors))),
       req => {
-        val fullReq = req.copy(userId = request.identity.id)
+        val fullReq = req.copy(userId = request.identity.id, status = Constants.newRequest)
         db.run(dataRequests += fullReq).map(_ => Redirect(routes.Isidro.requests))
       }
     )
+  }
+
+  def handleWithdrawFile(rid: Int) = SecuredAction.async { implicit request =>
+    val fileq = for {
+      uf <- uniqueFiles if uf.requestId === rid
+      r <- dataRequests if uf.requestId === r.id
+    } yield (uf, r)
+    db.run(fileq.result).map(res => res.headOption match {
+      case Some((uf, req)) => {
+        uf.delete
+        db.run(uniqueFiles.filter(_.requestId === rid).map(x => (x.isDeleted)).update(true))
+        db.run(dataRequests.filter(_.id === rid).map(x => (x.status)).update(Constants.readyToSend))
+        Redirect(routes.Isidro.requests)
+      }
+      case _ => {
+        println(s"no file for request: $rid")
+        Redirect(routes.Isidro.requests)
+      }
+    })
   }
 
   def downloadFile(uniqueName: String) = Action.async {
@@ -204,12 +232,12 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
           println(s"""Data file "${uf.fileLocation}" does not exist on disk.""")
           Redirect(routes.Isidro.index)
         } else {
-          println("dl")
           val password = uf.password
           val fileToServe = TemporaryFile(filePath)
-          if (password != None) {
-            //mailHandler.sendPasswordEmail(req.email, password, None, req)
+          if (password.isDefined) {
+            Mailer.sendPasswordEmail(req.email, password.get)
           }
+          db.run(dataRequests.filter(_.id === req.id).map(x => (x.status)).update(Constants.downloaded))
           Ok.sendFile(fileToServe.file, onClose = () => { fileToServe.clean })
         }
       }
@@ -221,7 +249,6 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
   }
 
   def download(uid: String) = UserAwareAction.async { implicit request =>
-    println(s"download: $uid")
     val q = for {
       uf <- uniqueFiles if uf.uniqueName === uid
       r <- dataRequests if uf.requestId === r.id

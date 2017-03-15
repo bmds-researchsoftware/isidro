@@ -28,10 +28,16 @@ object Mailer {
   def sendDownloadEmail(email: String, link: String)(implicit ms: MailService, m: Messages) {
     ms.sendEmailAsync(email)(
       subject = Messages("mail.download.subject"),
-      bodyHtml = mails.downloadLink(email, link),
-      bodyText = mails.downloadLink(email, link)
+      bodyHtml = mails.downloadLink(link),
+      bodyText = mails.downloadLinkTxt(link)
     )
   }
-  
 
+  def sendPasswordEmail(email: String, password: String)(implicit ms: MailService, m: Messages) {
+    ms.sendEmailAsync(email)(
+      subject = Messages("mail.download.subject"),
+      bodyHtml = mails.password(password),
+      bodyText = mails.passwordTxt(password)
+    )
+  }
 }

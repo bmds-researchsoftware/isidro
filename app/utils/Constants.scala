@@ -15,11 +15,12 @@ object Constants {
   lazy val watermarkImagePath = Play.current.configuration.getString("watermarkImagePath").getOrElse(throw new RuntimeException("Missing watermarkImagePath in application.conf"))
   lazy val serverName = Play.current.configuration.getString("serverName").getOrElse(throw new RuntimeException("Missing serverName in application.conf"))
   lazy val fileExpiration = Play.current.configuration.getInt("fileExpiration").getOrElse(throw new RuntimeException("Bad or missing fileExpiration in application.conf"))
-  val newRequest = 0
-  val awaitingRequirements = 1
-  val readyToSend = 2
-  val awaitingDownload = 3
-  val downloaded = 4
-  val closed = 5
+  val editRequest = 0
+  val newRequest = 1
+  val awaitingRequirements = 2
+  val readyToSend = 3
+  val awaitingDownload = 4
+  val downloaded = 5
+  val closed = 6
 }
 

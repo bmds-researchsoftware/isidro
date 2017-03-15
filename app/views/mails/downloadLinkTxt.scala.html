@@ -1,8 +1,2 @@
-@(name: String, link: String)(implicit messages: Messages)
-@Messages("mail.forgotpwd.prelink")
-
-@link
-
-@Messages("mail.forgotpwd.postlink")
-
-@Messages("mail.sign")
+@(link: String)(implicit messages: Messages)
+Here's the link to your requested data: <a href="@link">@link</a>

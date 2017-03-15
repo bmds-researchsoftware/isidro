@@ -22,7 +22,7 @@
     </div>
 
     @dr.map { r =>
-        <div class="row bx" onclick="document.location.href = '@routes.Isidro.editRequest(r.id, r.status+1)'">
+        <div class="row bx" onclick="document.location.href = '@routes.Isidro.editRequest(r.id, r.status)'">
           <div class="col-sm-2">
             @r.statusString
           </div>
