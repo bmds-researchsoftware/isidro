@@ -29,6 +29,7 @@ class Auth @Inject() (val env: AuthenticationEnvironment, val messagesApi: Messa
   val passwordValidation = nonEmptyText(minLength = 6)
   def notFoundDefault(implicit request: RequestHeader) = Future.successful(NotFound(views.html.errors.notFound(request)))
 
+/*******************  
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
   // SIGN UP
 
@@ -114,7 +115,7 @@ class Auth @Inject() (val env: AuthenticationEnvironment, val messagesApi: Messa
       case None => notFoundDefault
     }
   }
-
+   */
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // SIGN IN
 

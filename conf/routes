@@ -3,9 +3,9 @@
 # ~~~~
 
 # Authentication pages
-GET  /signup                   controllers.Auth.startSignUp
-POST /signup                   controllers.Auth.handleStartSignUp
-GET  /signup/:token            controllers.Auth.signUp(token: String)
+#GET  /signup                   controllers.Auth.startSignUp
+#POST /signup                   controllers.Auth.handleStartSignUp
+#GET  /signup/:token            controllers.Auth.signUp(token: String)
 GET  /signin                   controllers.Auth.signIn
 POST /authenticate             controllers.Auth.authenticate
 GET  /signout                  controllers.Auth.signOut

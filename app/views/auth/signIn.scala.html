@@ -1,11 +1,13 @@
 @(signInForm: Form[(String, String, Boolean)])(implicit request: RequestHeader, messages: Messages)
 @import b3.vertical.fieldConstructor
 @import controllers.routes
+@import helper._
 
 @default("Sign In") {
 @tags.alertFromRequest(request, "error")
 
 @b3.form(routes.Auth.authenticate) {
+  @CSRF.formField  
   <fieldset>
     <legend>@Messages("signin.title")</legend>
     @b3.text( signInForm("identifier"), '_hiddenLabel -> Messages("field.email"), 'placeholder -> "your@email.com", 'autofocus -> true )

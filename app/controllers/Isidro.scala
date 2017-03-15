@@ -232,10 +232,8 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
     })
   }
 
-  def handleClose(rid: Int) = SecuredAction { implicit request =>
-    Await.result(db.run(dataRequests.filter(_.id === rid).map(x => (x.status)).update(Constants.closed)),
-      Duration.Inf)    
-    Redirect(routes.Isidro.requests)
+  def handleClose(rid: Int) = SecuredAction.async { implicit request =>
+    db.run(dataRequests.filter(_.id === rid).map(x => (x.status)).update(Constants.closed)).map(_ => Redirect(routes.Isidro.requests))
   }
 
   def downloadFile(uniqueName: String) = Action.async {
