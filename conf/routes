@@ -23,7 +23,7 @@ GET  /                         controllers.Isidro.index
 GET  /requests                 controllers.Isidro.requests
 GET  /requests/closed          controllers.Isidro.closedRequests
 GET  /newRequest               controllers.Isidro.newRequest
-GET  /myaccount                controllers.Isidro.myAccount
+# GET  /myaccount                controllers.Isidro.myAccount
 GET  /request/:rid/edit0       controllers.Isidro.editRequest(rid: Int)
 GET  /request/:rid/edit1       controllers.Isidro.editRequirements(rid: Int)
 GET  /request/:rid/edit2       controllers.Isidro.editProgress(rid: Int)

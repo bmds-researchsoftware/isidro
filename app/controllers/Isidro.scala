@@ -46,7 +46,6 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
     extends AuthenticationController with I18nSupport with Tables with HasDatabaseConfig[JdbcProfile] {
   implicit val ms = mailService
 
-
   val dbConfig = DatabaseConfigProvider.get[JdbcProfile](Play.current)
   import driver.api._
 
@@ -72,9 +71,9 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
     Ok(views.html.index())
   }
 
-  def myAccount = SecuredAction.async { implicit request =>
+  /*def myAccount = SecuredAction.async { implicit request =>
     Future.successful(Ok(views.html.myAccount()))
-  }
+  }*/
 
   def newRequest = SecuredAction.async { implicit request =>
     Future.successful(Ok(views.html.request.newRequest(newRequestForm)))

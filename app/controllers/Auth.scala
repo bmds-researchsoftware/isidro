@@ -238,7 +238,7 @@ class Auth @Inject() (val env: AuthenticationEnvironment, val messagesApi: Messa
           for {
             _ <- env.authInfoRepository.update(loginInfo, env.authInfo(passwords._2))
             authenticator <- env.authenticatorService.create(loginInfo)
-            result <- env.authenticatorService.renew(authenticator, Redirect(routes.Isidro.myAccount).flashing("success" -> Messages("auth.password.changed")))
+            result <- env.authenticatorService.renew(authenticator, Redirect(routes.Isidro.index).flashing("success" -> Messages("auth.password.changed")))
           } yield result
         }.recover {
           case e: ProviderException => BadRequest(viewsAuth.changePassword(changePasswordForm.withError("current", Messages("auth.currentpwd.incorrect"))))
