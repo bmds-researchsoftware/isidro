@@ -67,44 +67,62 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
     "cphs" -> text)
     (DataRequest.apply _ )(DataRequest.unapply _))
 
+
+  /**
+   * Landing page. (Dead end)
+   */
   def index = UserAwareAction { implicit request =>
     Ok(views.html.index())
   }
 
-  /*def myAccount = SecuredAction.async { implicit request =>
-    Future.successful(Ok(views.html.myAccount()))
-  }*/
-
+  /**
+   * New request form
+   */
   def newRequest = SecuredAction.async { implicit request =>
     Future.successful(Ok(views.html.request.newRequest(newRequestForm)))
   }
 
-  def requests = SecuredAction.async { implicit request =>
-    db.run(dataRequests.filter(_.status =!= Constants.CLOSED).result).map(req =>
-      Ok(views.html.brokerRequests(req.toList)))
+  /**
+   * View list of requests
+   *
+   * @param showClosed False=>Show only closed requests.  True=>Show only open requests
+   */
+  def requests(showClosed: Boolean) = SecuredAction.async { implicit request =>
+    db.run(dataRequests.filter(if (showClosed) _.status === Constants.CLOSED else _.status =!= Constants.CLOSED).result).map(req =>
+      Ok(views.html.brokerRequests(req.toList, showClosed)))
   }
 
-  def closedRequests = SecuredAction.async { implicit request =>
-    db.run(dataRequests.filter(_.status === Constants.CLOSED).result).map(req =>
-      Ok(views.html.brokerRequests(req.toList, true)))
-  }
-
+  /**
+   *  View log of request activity
+   *
+   * @param rid The request's id
+   */
   def viewLog(rid: Int) = SecuredAction.async { implicit request =>
     val q = for {
       log <- requestLogs if log.request === rid
       u <- users if u.id === log.user
     } yield (log, u)
     db.run(q.result.zip(dataRequests.filter(_.id === rid).result)).map(logs => {
-      Ok(views.html.request.viewLog(logs._2.head, logs._1.toList))
+      Ok(views.html.request.viewLog(logs._2.head, logs._1.toList.sortBy(_._1.time.getTime)))
     })
   }
 
+  /**
+   * Form to edit a request
+   *
+   * @param rid The request's id
+   */
   def editRequest(rid: Int) = SecuredAction.async { implicit request =>
     db.run(dataRequests.filter(_.id === rid).result).map(req => {
       Ok(views.html.request.editRequest(rid, newRequestForm.fill(req.head)))
     })
   }
 
+  /**
+   * Form to edit a request's requirements
+   *
+   * @param rid The request's id
+   */
   def editRequirements(rid: Int) = SecuredAction.async { implicit request =>
     val q3 = for {
       rr <- requestRequirements if rr.request === rid
@@ -115,11 +133,16 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
         case Some(theRequest) => {
           Ok(views.html.request.editRequirements(theRequest, req._2._1.toList, req._2._2.toList))
         }
-        case _ => Redirect(routes.Isidro.requests)
+        case _ => Redirect(routes.Isidro.requests(false))
       }
     })
   }
 
+  /**
+   * Form to edit a request's requirement progress
+   *
+   * @param rid The request's id
+   */
   def editProgress(rid: Int) = SecuredAction.async { implicit request =>
     val q3 = for {
       rr <- requestRequirements if rr.request === rid
@@ -131,44 +154,64 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
         case Some(theRequest) => {
           Ok(views.html.request.trackRequirements(theRequest, req._2.toList))
         }
-        case _ => Redirect(routes.Isidro.requests)
+        case _ => Redirect(routes.Isidro.requests(false))
       }
     })
   }
 
+  /**
+   * Form to upload PHI file.
+   *
+   * @param rid The request's id
+   */
   def sendFile(rid: Int) = SecuredAction.async { implicit request =>
     db.run(dataRequests.filter(_.id === rid).result).map(req => {
       req.headOption match {
         case Some(theRequest) => {
           Ok(views.html.request.sendFile(theRequest))
         }
-        case _ => Redirect(routes.Isidro.requests)
+        case _ => Redirect(routes.Isidro.requests(false))
       }
     })
   }
 
+  /**
+   * Form to edit request that is waiting to be downloaded.
+   *
+   * @param rid The request's id
+   */
   def editAwaitingDownload(rid: Int) = SecuredAction.async { implicit request =>
     db.run(dataRequests.filter(_.id === rid).result).map(req => {
       req.headOption match {
         case Some(theRequest) => {
           Ok(views.html.request.editAwaiting(theRequest))
         }
-        case _ => Redirect(routes.Isidro.requests)
+        case _ => Redirect(routes.Isidro.requests(false))
       }
     })
   }
 
+  /**
+   *  Form to edit (close) request that has been downloaded.
+   *
+   * @param rid The request's id
+   */
   def editDownloaded(rid: Int) = SecuredAction.async { implicit request =>
     db.run(dataRequests.filter(_.id === rid).result).map(req => {
       req.headOption match {
         case Some(theRequest) => {
           Ok(views.html.request.editDownloaded(theRequest))
         }
-        case _ => Redirect(routes.Isidro.requests)
+        case _ => Redirect(routes.Isidro.requests(false))
       }
     })
   }
 
+  /**
+   * Form handler for request requirement progress updating.
+   *
+   * @param rid The request's id
+   */
   def handleProgress(rid: Int) = SecuredAction { implicit request =>
     val complete = request.body.asFormUrlEncoded.head.map(_._1).filter(_.startsWith("rq")).map(_.substring(2).toInt).toList
 
@@ -198,20 +241,33 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
     } yield c.completed
     db.run(qComplete.update(true))
 
-    Redirect(routes.Isidro.requests)
+    Redirect(routes.Isidro.requests(false))
   }
 
+  /**
+   * Form handler to edit request's requirements.
+   *
+   * @param rid The request's id
+   */
   def handleRequirements(rid: Int) = SecuredAction.async { implicit request =>
     val reqs = request.body.asFormUrlEncoded.head.map(_._1).filter(_.startsWith("rq")).map(_.substring(2).toInt)
     val rrs = reqs.map(new RequestRequirement(rid, _))
     Await.result(db.run(requestRequirements.filter(_.request === rid).delete), Duration.Inf)
     RequestLogService.log(rid, request.identity.id, "Requirements edited.")
     db.run(dataRequests.filter(_.id === rid).map(x => (x.status)).update(Constants.AWAITINGREQUIREMENTS))
-    db.run(requestRequirements ++= rrs).map(_ => Redirect(routes.Isidro.requests))
+    db.run(requestRequirements ++= rrs).map(_ => Redirect(routes.Isidro.requests(false)))
   }
 
+  /**
+   * Form handler for new requests
+   */
   def handleNewRequest = handleEditRequest(-1)
 
+  /**
+   * Form handler for request editing, and new requests.
+   *
+   * @param rid The request's id, or -1 for new request.
+   */
   def handleEditRequest(rid: Int) = SecuredAction.async { implicit request =>
     newRequestForm.bindFromRequest.fold(
       formWithErrors => Future.successful(BadRequest(views.html.request.newRequest(formWithErrors))),
@@ -221,17 +277,22 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
           val insertQ = dataRequests returning dataRequests.map(_.id)
           db.run(insertQ += fullReq).map(newId => {
             RequestLogService.log(newId, request.identity.id, fullReq.logString)
-            Redirect(routes.Isidro.requests)
+            Redirect(routes.Isidro.requests(false))
           })
         } else {
           val fullReq = req.copy(id = rid, userId = request.identity.id, status = Constants.NEWREQUEST)
           RequestLogService.log(rid, request.identity.id, s"Request edited:\n${fullReq.logString}")
-          db.run(dataRequests.filter(_.id === rid).update(fullReq)).map(_ => Redirect(routes.Isidro.requests))
+          db.run(dataRequests.filter(_.id === rid).update(fullReq)).map(_ => Redirect(routes.Isidro.requests(false)))
         }
       }
     )
   }
 
+  /**
+   * Form handler for withdrawing a request's uploaded data file.
+   *
+   * @param rid The request's id
+   */
   def handleWithdrawFile(rid: Int) = SecuredAction.async { implicit request =>
     val fileq = for {
       uf <- uniqueFiles if uf.requestId === rid
@@ -243,20 +304,30 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
         db.run(uniqueFiles.filter(_.requestId === rid).map(x => (x.isDeleted)).update(true))
         db.run(dataRequests.filter(_.id === rid).map(x => (x.status)).update(Constants.READYTOSEND))
         RequestLogService.log(rid, request.identity.id, s"Data file ${uf.fileLocation} withdrawn and deleted.")
-        Redirect(routes.Isidro.requests)
+        Redirect(routes.Isidro.requests(false))
       }
       case _ => {
         Logger.error(s"no file for request: $rid")
-        Redirect(routes.Isidro.requests)
+        Redirect(routes.Isidro.requests(false))
       }
     })
   }
 
+  /**
+   * Form handler for closing a completed request.
+   *
+   * @param rid The request's id
+   */
   def handleClose(rid: Int) = SecuredAction.async { implicit request =>
     RequestLogService.log(rid, request.identity.id, "Close request")
-    db.run(dataRequests.filter(_.id === rid).map(x => (x.status)).update(Constants.CLOSED)).map(_ => Redirect(routes.Isidro.requests))
+    db.run(dataRequests.filter(_.id === rid).map(x => (x.status)).update(Constants.CLOSED)).map(_ => Redirect(routes.Isidro.requests(false)))
   }
 
+  /**
+   * Download and delete a request's data file.
+   *
+   * @param uniqueName: Secure name from download link to identify file.
+   */
   def downloadFile(uniqueName: String) = Action.async {
     val fileq = for {
       uf <- uniqueFiles if uf.uniqueName === uniqueName
@@ -292,6 +363,11 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
     })
   }
 
+  /**
+   * Secure download link landing page.  Provides a link to download the file, or a note that the file has expired or been deleted.
+   *
+   * @param uid Unique name of file to download
+   */
   def download(uid: String) = UserAwareAction.async { implicit request =>
     val q = for {
       uf <- uniqueFiles if uf.uniqueName === uid
@@ -309,6 +385,13 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
     }}
   }
 
+  /**
+   * Create an xlsx file from csv data.
+   *
+   * @param xlsxPath    Path to xlsx file to be created
+   * @param csvContents Data read from csv file (2D string array)
+   * @param watermark   True if the xlsx file should be watermarked.
+   */
   type CsvData = java.util.List[java.util.List[String]]
   private def createXlsx(xlsxPath: String, csvContents: CsvData, watermark: Boolean) = {
     try {
@@ -325,12 +408,30 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
   }
 
 
+  /**
+   * Encrypt xlsx file with a random password
+   *
+   * @param xlsxPath Path to xlsx file to be encrypted
+   * @return The password used for encryption
+   */
   private def encryptXlsx(xlsxPath: String) = {
     val pw = RandomUtils.generateRandomNumberString(Constants.RANDOMBITS, Constants.RADIX);
     ExcelEncrypt.encrypt(xlsxPath, pw, CipherAlgorithm.valueOf(Constants.encryptionAlgorithm));
     pw
   }
 
+  /**
+   * Build xlsx file from csv data, with the suppled options.
+   *
+   * @param rid Id of request for this file
+   * @param xlsxPath Path to xlsx file to be created
+   * @param csvContents Data read from csv file (2D string array)
+   * @param logEntry StringBuilder to append with request log information
+   * @param fingerprint Enable fingerprint
+   * @param watermark Enable watermark
+   * @param signature Enable signature
+   * @param encrypt Enable encrytion
+   */
   private def buildFile(
     rid: Int,
     xlsxPath: String,
@@ -367,6 +468,11 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
     uniqueFile
   }
 
+  /**
+   * Form handler for request data upload form.  Builds xlsx file and emails researcher with secure download link.
+   *
+   * @param rid The request's id
+   */
   def handleFileUpload(rid: Int) = SecuredAction(parse.multipartFormData) { implicit request =>
     val logEntry = new StringBuilder()
 
@@ -412,7 +518,7 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
       Redirect(routes.Isidro.sendFile(rid)).flashing("error" -> "Missing file")
     }
 
-    Redirect(routes.Isidro.requests)
+    Redirect(routes.Isidro.requests(false))
   }
 
 

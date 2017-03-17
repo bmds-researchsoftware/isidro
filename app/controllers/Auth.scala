@@ -96,7 +96,7 @@ class Auth @Inject() (val env: AuthenticationEnvironment, val messagesApi: Messa
             case Some(user) => for {
               authenticator <- env.authenticatorService.create(loginInfo).map(env.authenticatorWithRememberMe(_, false))
               cookie <- env.authenticatorService.init(authenticator)
-              result <- env.authenticatorService.embed(cookie, Redirect(routes.Isidro.requests))
+              result <- env.authenticatorService.embed(cookie, Redirect(routes.Isidro.requests(false)))
             } yield {
               env.publish(LoginEvent(user, request, request2Messages))
               result

@@ -20,8 +20,8 @@ GET  /denied                   controllers.Auth.accessDenied
 # Requests
 GET  /                         controllers.Isidro.index
 # GET  /myrequests             controllers.Isidro.myRequests
-GET  /requests                 controllers.Isidro.requests
-GET  /requests/closed          controllers.Isidro.closedRequests
+GET  /requests                 controllers.Isidro.requests(showClosed: Boolean ?= false)
+GET  /requests/closed          controllers.Isidro.requests(showClosed: Boolean = true)
 GET  /newRequest               controllers.Isidro.newRequest
 # GET  /myaccount                controllers.Isidro.myAccount
 GET  /request/:rid/edit0       controllers.Isidro.editRequest(rid: Int)
