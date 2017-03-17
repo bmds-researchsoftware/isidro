@@ -4,6 +4,7 @@ import models.User
 import play.twirl.api.Html
 import play.api.i18n.Messages
 import views.html.mails
+import slick.driver.JdbcProfile
 
 object Mailer {
 

@@ -24,7 +24,12 @@ GET  /requests                 controllers.Isidro.requests
 GET  /requests/closed          controllers.Isidro.closedRequests
 GET  /newRequest               controllers.Isidro.newRequest
 GET  /myaccount                controllers.Isidro.myAccount
-GET  /request/:rid/edit:state  controllers.Isidro.editRequest(rid: Int, state: Int)
+GET  /request/:rid/edit0       controllers.Isidro.editRequest(rid: Int)
+GET  /request/:rid/edit1       controllers.Isidro.editRequirements(rid: Int)
+GET  /request/:rid/edit2       controllers.Isidro.editProgress(rid: Int)
+GET  /request/:rid/edit3       controllers.Isidro.sendFile(rid: Int)
+GET  /request/:rid/edit4       controllers.Isidro.editAwaitingDownload(rid: Int)
+GET  /request/:rid/edit5       controllers.Isidro.editDownloaded(rid: Int)
 GET  /request/:rid/log         controllers.Isidro.viewLog(rid: Int)
 GET  /downloads/download/:uid  controllers.Isidro.downloadFile(uid: String)
 GET  /downloads/:uid           controllers.Isidro.download(uid: String)
@@ -34,7 +39,7 @@ POST /newRequest               controllers.Isidro.handleNewRequest
 POST /request/:rid/edit0       controllers.Isidro.handleEditRequest(rid: Int)
 POST /request/:rid/edit1       controllers.Isidro.handleRequirements(rid: Int)
 POST /request/:rid/edit2       controllers.Isidro.handleProgress(rid: Int)
-POST /request/:rid/edit3       controllers.Isidro.handleFile(rid: Int)
+POST /request/:rid/edit3       controllers.Isidro.handleFileUpload(rid: Int)
 POST /request/:rid/edit4       controllers.Isidro.handleWithdrawFile(rid: Int)
 POST /request/:rid/edit5       controllers.Isidro.handleClose(rid: Int)
 

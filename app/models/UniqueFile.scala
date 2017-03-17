@@ -12,6 +12,7 @@ import org.apache.commons.io.FileUtils
 import org.apache.commons.lang3.time.DateUtils
 
 import utils.RandomUtils
+import utils.Constants
 
 case class UniqueFile(
   isDeleted: Boolean,
@@ -59,7 +60,7 @@ object UniqueFileServ {
     val os = new FileOutputStream(path.toFile)
     FileUtils.copyFile(new File(inputPath), path.toFile)
 
-    val uniqueName = RandomUtils.generateRandom512BitBase32NumberString
+    val uniqueName = RandomUtils.generateRandomNumberString(Constants.RANDOMBITS, Constants.RADIX)
     new UniqueFile(false, password, path.toString, uniqueName, id, originalFileName, new java.sql.Date(new java.util.Date().getTime))
   }
 }

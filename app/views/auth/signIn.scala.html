@@ -1,4 +1,4 @@
-@(signInForm: Form[(String, String, Boolean)])(implicit request: RequestHeader, messages: Messages)
+@(signInForm: Form[(String, String)])(implicit request: RequestHeader, messages: Messages)
 @import b3.vertical.fieldConstructor
 @import controllers.routes
 @import helper._
@@ -12,7 +12,6 @@
     <legend>@Messages("signin.title")</legend>
     @b3.text( signInForm("identifier"), '_hiddenLabel -> Messages("field.email"), 'placeholder -> "your@email.com", 'autofocus -> true )
     @b3.password( signInForm("password"), '_hiddenLabel -> Messages("field.password"), 'placeholder -> Messages("field.password") )
-    @b3.checkbox( signInForm("rememberMe"), '_text -> Messages("signin.rememberme"), 'checked -> true )
     @b3.submit('class -> "btn btn-primary btn-block"){ @Messages("signin") }
     <div class="post-form-opts">
       <p>@Messages("signin.forgot.question") <a href="@routes.Auth.forgotPassword">@Messages("signin.forgot")</a></p>

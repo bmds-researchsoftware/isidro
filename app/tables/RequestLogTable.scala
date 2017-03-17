@@ -16,5 +16,5 @@ trait RequestLogTable {
     def timeMod = column[Timestamp]("timeMod")
 
     def * = (id, request, user, text, timeMod) <> (RequestLog.tupled, RequestLog.unapply _)
-  } 
+  }
 }

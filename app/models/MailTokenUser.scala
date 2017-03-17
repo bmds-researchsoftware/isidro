@@ -1,6 +1,7 @@
 package models
 
 import utils.silhouette.MailToken
+import utils.Constants
 import org.joda.time.DateTime
 import java.util.UUID
 import scala.concurrent.Future
@@ -9,7 +10,7 @@ case class MailTokenUser(id: String, email: String, expirationTime: DateTime, is
 
 object MailTokenUser {
   def apply(email: String, isSignUp: Boolean): MailTokenUser =
-    MailTokenUser(UUID.randomUUID().toString, email, (new DateTime()).plusHours(24), isSignUp)
+    MailTokenUser(UUID.randomUUID().toString, email, (new DateTime()).plusHours(Constants.DAYHOURS), isSignUp)
 
   val tokens = scala.collection.mutable.HashMap[String, MailTokenUser]()
 

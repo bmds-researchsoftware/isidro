@@ -11,7 +11,15 @@ import play.api.db.slick.HasDatabaseConfig
 import slick.driver.JdbcProfile
 import tables.UserTable
 
-case class User(id: Long, email: String, emailConfirmed: Boolean, password: String, firstName: String, lastName: String, services: String) extends IdentitySilhouette {
+case class User(
+  id: Long,
+  email: String,
+  emailConfirmed: Boolean,
+  password: String,
+  firstName: String,
+  lastName: String,
+  services: String)
+    extends IdentitySilhouette {
   def key = email
   def fullName: String = firstName + " " + lastName
 }
@@ -23,7 +31,8 @@ object UserServ extends UserTable with HasDatabaseConfig[JdbcProfile] {
   val services = Seq("A", "B")
   val users = TableQuery[Users]
   val testUsers = scala.collection.mutable.HashMap[Long, User](
-    1L -> User(1L, "john@dartmouth.edu", true, (new BCryptPasswordHasher()).hash("xyzzy123").password, "John", "Higgins", "master")
+    1L -> User(1L, "john@dartmouth.edu", true, (new BCryptPasswordHasher()).hash("xyzzy123").password,
+      "John", "Higgins", "master")
   )
 
   def findByEmail(email: String): Future[Option[User]] = {

@@ -13,5 +13,5 @@ trait RequestRequirementTable {
     def completed = column[Boolean]("completed")
 
     def * = (request, requirement, completed) <> (RequestRequirement.tupled, RequestRequirement.unapply _)
-  } 
+  }
 }
