@@ -55,6 +55,8 @@ libraryDependencies ++= Seq(
   "org.apache.poi" % "poi-ooxml-schemas" % "3.14", // https://mvnrepository.com/artifact/org.apache.poi/poi-ooxml-schemas
 
   "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % "test", // scala test + play
+  "org.bouncycastle" % "bcprov-jdk15on" % "1.54",
+  "org.bouncycastle" % "bcpkix-jdk15on" % "1.54",
   filters
 )
 

@@ -25,6 +25,7 @@ GET  /requests/closed          controllers.Isidro.closedRequests
 GET  /newRequest               controllers.Isidro.newRequest
 GET  /myaccount                controllers.Isidro.myAccount
 GET  /request/:rid/edit:state  controllers.Isidro.editRequest(rid: Int, state: Int)
+GET  /request/:rid/log         controllers.Isidro.viewLog(rid: Int)
 GET  /downloads/download/:uid  controllers.Isidro.downloadFile(uid: String)
 GET  /downloads/:uid           controllers.Isidro.download(uid: String)
 

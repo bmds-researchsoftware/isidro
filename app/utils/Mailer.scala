@@ -25,12 +25,14 @@ object Mailer {
     )
   }
 
-  def sendDownloadEmail(email: String, link: String)(implicit ms: MailService, m: Messages) {
+  def sendDownloadEmail(email: String, link: String)(implicit ms: MailService, m: Messages)={
+    val mailTxt = mails.downloadLinkTxt(link)
     ms.sendEmailAsync(email)(
       subject = Messages("mail.download.subject"),
       bodyHtml = mails.downloadLink(link),
-      bodyText = mails.downloadLinkTxt(link)
+      bodyText = mailTxt
     )
+    mailTxt
   }
 
   def sendPasswordEmail(email: String, password: String)(implicit ms: MailService, m: Messages) {

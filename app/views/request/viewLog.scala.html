@@ -1,0 +1,25 @@
+@(r: DataRequest, log: List[(RequestLog, User)])(implicit request: RequestHeader, user: User, messages: Messages)
+
+@views.html.templates.logged(title = Messages("request.log.title", r.id, r.title), tab = "update") {
+  <div class="container-fluid content">
+    <div class="row">
+      <div class="col-sm-8 col-sm-offset-2 requpdate">
+        <div class="pageheader">@Messages("request.log.title", r.id, r.title)</div>
+        @Messages("request.log.caption")
+      </div>
+    </div>
+    
+    <div class="row header">
+      <div class="col-sm-2">Date</div>
+      <div class="col-sm-6">Activity</div>
+      <div class="col-sm-4">User</div>
+    </div>
+    @log.map { logEntry =>
+      <div class="row logrow">
+        <div class="col-sm-2">@logEntry._1.dateString</div>
+        <div class="col-sm-6 pre">@{logEntry._1.text.trim}</div>
+        <div class="col-sm-4">@logEntry._2.fullName &lt;@logEntry._2.email&gt;</div>
+      </div>
+    }
+  </div>
+}

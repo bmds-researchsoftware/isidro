@@ -230,3 +230,12 @@ a.button {
   line-height: inherit;
   margin-left: 3em;
 }
+
+.pre {
+  white-space: pre;
+  overflow: auto;
+}
+
+.logrow div {
+  border-top: 1px solid #ddd;
+}  

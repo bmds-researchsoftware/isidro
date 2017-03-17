@@ -67,13 +67,13 @@ CREATE TABLE "unique_file" (
 
 INSERT INTO "isidro_user" VALUES (1,'','John','Higgins','john@dartmouth.edu',TRUE,'$2a$10$Mtcq4iFwL6tRhekgpH3jxeckRUqu8tKcM0JpmdsUz7srLtAbvDW06','master');
 
-DROP TABLE IF EXISTS "user_requirement_log";
-CREATE TABLE "user_requirement_log" (
+DROP TABLE IF EXISTS "request_log";
+CREATE TABLE "request_log" (
   "id" SERIAL,
   "requestId" int NOT NULL,
-  "requirementId" int NOT NULL,
-  "userId" int NOT NULL,
-  "logTime" int NOT NULL,
+  "userId" int NOT NULL default 0,
+  "notes" varchar(4096) NOT NULL,
+  "timeMod" timestamp NOT NULL default now(),
   PRIMARY KEY ("id")
 );
 
