@@ -30,41 +30,6 @@ class Auth @Inject() (val env: AuthenticationEnvironment, val messagesApi: Messa
   val passwordValidation = nonEmptyText(minLength = Constants.minPasswordLength)
   def notFoundDefault(implicit request: RequestHeader) = Future.successful(NotFound(views.html.errors.notFound(request)))
 
-  /**
-   * Confirms the user's email address based on the token and authenticates him.
-    */
-/*  def signUp(tokenId: String) = Action.async { implicit request =>
-    env.tokenService.retrieve(tokenId).flatMap {
-      case Some(token) if (token.isSignUp && !token.isExpired) => {
-        env.identityService.retrieve(token.email).flatMap {
-          case Some(user) => {
-            env.authenticatorService.create(user.email).flatMap { authenticator =>
-              if (!user.emailConfirmed) {
-                env.identityService.save(user.copy(emailConfirmed = true)).map { newUser =>
-                  env.publish(SignUpEvent(newUser, request, request2Messages))
-                }
-              }
-              for {
-                cookie <- env.authenticatorService.init(authenticator)
-                result <- env.authenticatorService.embed(cookie, Ok(viewsAuth.signedUp(user)))
-              } yield {
-                env.tokenService.consume(tokenId)
-                env.publish(LoginEvent(user, request, request2Messages))
-                result
-              }
-            }
-          }
-          case None => Future.failed(new IdentityNotFoundException("Couldn't find user"))
-        }
-      }
-      case Some(token) => {
-        env.tokenService.consume(tokenId)
-        notFoundDefault
-      }
-      case None => notFoundDefault
-    }
-  } */
-
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // SIGN IN
 
@@ -219,33 +184,6 @@ class Auth @Inject() (val env: AuthenticationEnvironment, val messagesApi: Messa
     "password1" -> passwordValidation,
     "password2" -> nonEmptyText
   ) verifying (Messages("auth.passwords.notequal"), passwords => passwords._3 == passwords._2))
-
-  /**
-   * Starts the change password mechanism. It shows a form to insert his current password and the new one.
-   */
-  def changePassword = SecuredAction.async { implicit request =>
-    Future.successful(Ok(viewsAuth.changePassword(changePasswordForm)))
-  }
-
-  /**
-   * Saves the new password and renew the cookie
-   */
-  def handleChangePassword = SecuredAction.async { implicit request =>
-    changePasswordForm.bindFromRequest.fold(
-      formWithErrors => Future.successful(BadRequest(viewsAuth.changePassword(formWithErrors))),
-      passwords => {
-        env.credentialsProvider.authenticate(Credentials(request.identity.email, passwords._1)).flatMap { loginInfo =>
-          for {
-            _ <- env.authInfoRepository.update(loginInfo, env.authInfo(passwords._2))
-            authenticator <- env.authenticatorService.create(loginInfo)
-            result <- env.authenticatorService.renew(authenticator, Redirect(routes.Isidro.index).flashing("success" -> Messages("auth.password.changed")))
-          } yield result
-        }.recover {
-          case e: ProviderException => BadRequest(viewsAuth.changePassword(changePasswordForm.withError("current", Messages("auth.currentpwd.incorrect"))))
-        }
-      }
-    )
-  }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // ACCESS DENIED

@@ -13,8 +13,6 @@ GET  /reset-password           controllers.Auth.forgotPassword
 POST /reset-password           controllers.Auth.handleForgotPassword
 GET  /reset-password/:token    controllers.Auth.resetPassword(token: String)
 POST /reset-password/:token    controllers.Auth.handleResetPassword(token: String)
-GET  /change-password          controllers.Auth.changePassword
-POST /change-password          controllers.Auth.handleChangePassword
 GET  /denied                   controllers.Auth.accessDenied
 
 # Requests
@@ -23,7 +21,6 @@ GET  /                         controllers.Isidro.index
 GET  /requests                 controllers.Isidro.requests(showClosed: Boolean ?= false)
 GET  /requests/closed          controllers.Isidro.requests(showClosed: Boolean = true)
 GET  /newRequest               controllers.Isidro.newRequest
-# GET  /myaccount                controllers.Isidro.myAccount
 GET  /request/:rid/edit0       controllers.Isidro.editRequest(rid: Int)
 GET  /request/:rid/edit1       controllers.Isidro.editRequirements(rid: Int)
 GET  /request/:rid/edit2       controllers.Isidro.editProgress(rid: Int)

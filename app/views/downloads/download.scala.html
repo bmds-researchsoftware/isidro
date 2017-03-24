@@ -1,17 +1,14 @@
 @(uniqueName: String)(implicit loggedUser: Option[User], messages: Messages)
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-@views.html.templates.default(title = "Home", loggedUser, tab = "index", withMainTabs=false, withAuth=false, withTitle=true) {
-  <div class="container-fluid content"> 
-    <h1>Downloads</h1> 
-    <div id="downloadLinkDiv"><a id="downloadLink" target="_blank" href="download/@uniqueName">Please continue to your download here.</a></div>
-    <script type='text/javascript'>
-      $('#downloadLink').click(function() {
-        $(function () {
-         setTimeout(function () {
-           $('#downloadLinkDiv').html('<p>Thank you for downloading your file. Please contact your data broker directly if you have any questions.</p>')
-         }, 100);
-        });
-      })
-    </script>
-  </div>
-}  
+@views.html.templates.default(
+  title = "Home",
+  loggedUser,
+  tab = "index",
+  withMainTabs=false,
+  withAuth=false,
+  withTitle=true,
+  scripts = Html("<script src='https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js'></script><script src='/public/javascripts/download.js'></script>")) {
+    <div class="container-fluid content"> 
+      <h1>Downloads</h1> 
+      <div id="downloadLinkDiv"><a id="downloadLink" target="_blank" href="download/@uniqueName" onclick="do_download()">@Messages("download.continue")</a></div>
+    </div>
+  }  
