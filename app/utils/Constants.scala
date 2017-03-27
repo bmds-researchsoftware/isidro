@@ -40,6 +40,6 @@ object Constants {
   val RANDOMBITS = 64
   val RADIX = 32
   val DAYHOURS = 24
-  val thisYear = LocalDate.now().getYear
+  val THISYEAR = LocalDate.now().getYear
 }
 

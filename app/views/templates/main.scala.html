@@ -1,7 +1,7 @@
 @(title: String, navbarContent: Html = Html(""), styles: Html = Html(""), scripts: Html = Html(""), modals: Html = Html(""), withTitle: Boolean = false)(content: Html)(implicit messages: Messages)
 
 @import controllers.routes
-@import utils.Constants.thisYear
+@import utils.Constants.THISYEAR
 
 <!DOCTYPE html>
 <html>
@@ -44,7 +44,7 @@
         
         <div class="container">
             @content
-            <div class="footer text-center"><small><a href="@messages("copyright.url")">@Messages("copyright")</a> @messages("copyright.msg", thisYear.toString)</small></div>
+            <div class="footer text-center"><small><a href="@messages("copyright.url")">@Messages("copyright")</a> @messages("copyright.msg", THISYEAR.toString)</small></div>
         </div>
         @modals
         @scripts
