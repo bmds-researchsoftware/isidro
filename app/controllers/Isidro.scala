@@ -99,8 +99,7 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
    */
   def viewLog(rid: Int) = SecuredAction.async { implicit request =>
     val q = for {
-      log <- requestLogs if log.request === rid
-      u <- users if u.id === log.user
+      (log, u) <- requestLogs.filter(_.request === rid) joinLeft users on (_.user === _.id)
     } yield (log, u)
     db.run(q.result.zip(dataRequests.filter(_.id === rid).result)).map(logs => {
       Ok(views.html.request.viewLog(logs._2.head, logs._1.toList.sortBy(_._1.time.getTime)))
@@ -352,7 +351,7 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
             Mailer.sendPasswordEmail(req.email, password.get)
           }
           db.run(dataRequests.filter(_.id === req.id).map(x => (x.status)).update(Constants.DOWNLOADED))
-          RequestLogService.log(req.id, 1, "File downloaded and deleted") // TODO No user
+          RequestLogService.log(req.id, 0L, "File downloaded and deleted")
           Ok.sendFile(fileToServe.file, onClose = () => { fileToServe.clean })
         }
       }

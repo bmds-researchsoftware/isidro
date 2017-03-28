@@ -56,7 +56,7 @@ class Auth @Inject() (val env: AuthenticationEnvironment, val messagesApi: Messa
       formWithErrors => Future.successful(BadRequest(viewsAuth.signIn(formWithErrors))),
       formData => {
         val (identifier, password) = formData
-        env.credentialsProvider.authenticate(Credentials(identifier, password)).flatMap { loginInfo =>
+        env.credentialsProvider.authenticate(Credentials(identifier.toLowerCase, password)).flatMap { loginInfo =>
           env.identityService.retrieve(loginInfo).flatMap {
             case Some(user) => for {
               authenticator <- env.authenticatorService.create(loginInfo).map(env.authenticatorWithRememberMe(_, false))
