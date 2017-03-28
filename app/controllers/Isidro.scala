@@ -88,7 +88,7 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
    * @param showClosed False=>Show only closed requests.  True=>Show only open requests
    */
   def requests(showClosed: Boolean) = SecuredAction.async { implicit request =>
-    db.run(dataRequests.filter(if (showClosed) _.status === Constants.CLOSED else _.status =!= Constants.CLOSED).result).map(req =>
+    db.run(dataRequests.filter(if (showClosed) _.status === Constants.CLOSED else _.status =!= Constants.CLOSED).sortBy(r => (r.status.desc, r.title, r.email, r.id)).result).map(req =>
       Ok(views.html.brokerRequests(req.toList, showClosed)))
   }
 
