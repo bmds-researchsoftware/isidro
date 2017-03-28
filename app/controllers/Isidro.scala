@@ -107,13 +107,38 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
   }
 
   /**
+    * Redirect to the edit page corresponding to the request's current state.
+    *
+    * @param rid: The request's id
+    * @param state: The request's current state
+    * @return Redirect response to the appropriate edit page, or requests list
+    */
+  private def redirectToCurrentState(rid: Int, state: Int) = {
+    Redirect(
+      if (state == Constants.AWAITINGDOWNLOAD) {
+        routes.Isidro.editAwaitingDownload(rid)
+      } else if (state == Constants.DOWNLOADED) {
+        routes.Isidro.editDownloaded(rid)
+      } else if (state == Constants.CLOSED) {
+        routes.Isidro.viewLog(rid)
+      } else {
+        routes.Isidro.requests(false)
+      }
+    )
+  }
+
+  /**
    * Form to edit a request
    *
    * @param rid The request's id
    */
   def editRequest(rid: Int) = SecuredAction.async { implicit request =>
     db.run(dataRequests.filter(_.id === rid).result).map(req => {
-      Ok(views.html.request.editRequest(rid, newRequestForm.fill(req.head)))
+      if (req.head.status >= Constants.AWAITINGDOWNLOAD) {
+        redirectToCurrentState(req.head.id, req.head.status)
+      } else {
+        Ok(views.html.request.editRequest(rid, newRequestForm.fill(req.head)))
+      }
     })
   }
 
@@ -130,7 +155,11 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
     db.run(dataRequests.filter(_.id === rid).result.zip(requirements.sortBy(r => r.order).result.zip(q3.result))).map(req => {
       req._1.headOption match {
         case Some(theRequest) => {
-          Ok(views.html.request.editRequirements(theRequest, req._2._1.toList, req._2._2.toList))
+          if (theRequest.status >= Constants.AWAITINGDOWNLOAD) {
+            redirectToCurrentState(theRequest.id, theRequest.status)
+          } else {
+            Ok(views.html.request.editRequirements(theRequest, req._2._1.toList, req._2._2.toList))
+          }
         }
         case _ => Redirect(routes.Isidro.requests(false))
       }
@@ -151,7 +180,11 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
     db.run(dataRequests.filter(_.id === rid).result.zip(q3.result)).map(req => {
       req._1.headOption match {
         case Some(theRequest) => {
-          Ok(views.html.request.trackRequirements(theRequest, req._2.toList))
+          if (theRequest.status >= Constants.AWAITINGDOWNLOAD) {
+            redirectToCurrentState(theRequest.id, theRequest.status)
+          } else {
+            Ok(views.html.request.trackRequirements(theRequest, req._2.toList))
+          }
         }
         case _ => Redirect(routes.Isidro.requests(false))
       }
@@ -167,7 +200,11 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
     db.run(dataRequests.filter(_.id === rid).result).map(req => {
       req.headOption match {
         case Some(theRequest) => {
-          Ok(views.html.request.sendFile(theRequest))
+          if (theRequest.status >= Constants.AWAITINGDOWNLOAD) {
+            redirectToCurrentState(theRequest.id, theRequest.status)
+          } else {
+            Ok(views.html.request.sendFile(theRequest))
+          }
         }
         case _ => Redirect(routes.Isidro.requests(false))
       }
@@ -183,7 +220,11 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
     db.run(dataRequests.filter(_.id === rid).result).map(req => {
       req.headOption match {
         case Some(theRequest) => {
-          Ok(views.html.request.editAwaiting(theRequest))
+          if (theRequest.status >= Constants.DOWNLOADED) {
+            redirectToCurrentState(theRequest.id, theRequest.status)
+          } else {
+            Ok(views.html.request.editAwaiting(theRequest))
+          }
         }
         case _ => Redirect(routes.Isidro.requests(false))
       }
@@ -199,7 +240,11 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
     db.run(dataRequests.filter(_.id === rid).result).map(req => {
       req.headOption match {
         case Some(theRequest) => {
-          Ok(views.html.request.editDownloaded(theRequest))
+          if (theRequest.status >= Constants.CLOSED) {
+            redirectToCurrentState(theRequest.id, theRequest.status)
+          } else {
+            Ok(views.html.request.editDownloaded(theRequest))
+          }
         }
         case _ => Redirect(routes.Isidro.requests(false))
       }
