@@ -393,15 +393,17 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
    * @param watermark   True if the xlsx file should be watermarked.
    */
   type CsvData = java.util.List[java.util.List[String]]
-  private def createXlsx(xlsxPath: String, csvContents: CsvData, watermark: Boolean) = {
+  private def createXlsx(xlsxPath: String, csvContents: CsvData, watermark: Boolean):String = {
     try {
       val workbook = CsvReader.getExcelWorkbook(Constants.isidroWorksheetName, csvContents)
+      val os = new FileOutputStream(xlsxPath)
+      workbook.write(os)
       if (watermark) {
         ExcelWatermark.watermark(workbook, Constants.isidroWorksheetName, new File(Constants.watermarkImagePath))
         s"Watermark: ${Constants.watermarkImagePath}\n"
+      } else {
+        ""
       }
-      val os = new FileOutputStream(xlsxPath)
-      workbook.write(os)
     } catch {
       case _:Throwable => "Watermark error"
     }
@@ -493,7 +495,7 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
 
 
       val uniqueFile = buildFile(rid, xlsxPath, csvContents, logEntry,
-        params.contains("checksum"),
+        params.contains("fingerprint"),
         params.contains("watermark"),
         params.contains("signature"),
         params.contains("encrypt"))
@@ -525,8 +527,9 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
   /**
    * Send an email with the data file download link.
    *
-   * @param request The request
+   * @param rid The request's id
    * @param uniqueName Data file identifier
+   * @param uid Signed in user's id
    * @throws MessagingException If thrown by mailHandler
    * @throws MalformedURLException If resulting URL is malformed
    */

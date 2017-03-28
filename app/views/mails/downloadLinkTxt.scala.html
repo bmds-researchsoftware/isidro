@@ -1,3 +1,2 @@
 @(link: String)(implicit messages: Messages)
-Here's the link to your requested data:
-<a href="@link">@link</a>
+@Html(Messages("mail.download.text", link))

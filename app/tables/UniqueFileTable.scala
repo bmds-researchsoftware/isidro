@@ -5,9 +5,6 @@ import slick.driver.JdbcProfile
 import java.sql.Date
 
 trait UniqueFileTable extends DataRequestTable {
-/*  implicit def dateConvert(d: java.util.Date) = new java.sql.Timestamp(d.getTime)
-  implicit def dateConvert(d: java.sql.Timestamp) = new java.util.Date(d.getTime) */
-
   protected val driver: JdbcProfile
   import driver.api._
   class UniqueFiles(tag: Tag) extends Table[UniqueFile](tag, "unique_file") {

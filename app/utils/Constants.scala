@@ -2,6 +2,7 @@ package utils
 
 import play.api.Play
 import java.lang.RuntimeException
+import java.time.LocalDate
 
 object Constants {
   lazy val encryptionAlgorithm = Play.current.configuration.getString("encryptionAlgorithm")
@@ -39,5 +40,6 @@ object Constants {
   val RANDOMBITS = 64
   val RADIX = 32
   val DAYHOURS = 24
+  val THISYEAR = LocalDate.now().getYear
 }
 

@@ -26,6 +26,7 @@ send.file.title=Send File
 requirement.progress.title=Edit Requirement Progress
 edit.requirements.title=Edit Request Requirements
 
+download.continue = Please continue to your download here.
 newRequest.title=New Data Request
 submitRequest=Send Request
 myrequests.title=Request History
@@ -91,7 +92,7 @@ index.table.allowed=Are you allowed?
 index.table.go=Go there and check yourself
 copyright.url=http://www.dartmouth.edu/copyright
 copyright=Copyright
-copyright.msg=© 2017 Trustees of Dartmouth College
+copyright.msg=© {0} Trustees of Dartmouth College
 
 ################################################################################################
 # MY ACCOUNT
@@ -149,14 +150,17 @@ error.notfound.text=For request ''{0}''
 ################################################################################################
 # MAILS
 
-mail.welcome.subject=Welcome to ISIDRO! Please confirm your account
-mail.welcome.hello=Welcome {0}!
-mail.welcome.prelink=Thanks for signing up for this great webpage! Please verify your email address by clicking the link below.
-mail.welcome.postlink=Note that this link will expire in 24 hours if it''s not activated.
+mail.download.subject = Your Requested Data
+mail.download.text = Here''s the link to your requested data: <a href="{0}">{0}</a>
 
-mail.forgotpwd.subject=Reset your ISIDRO password
-mail.forgotpwd.prelink=Someone (hopefully you) has requested a password reset for your ISIDRO account. Follow the link below to set a new password:
 mail.forgotpwd.postlink=Note that this link will expire in 24 hours. If you don''t wish to reset your password, disregard this email and no action will be taken.
+mail.forgotpwd.prelink=Someone (hopefully you) has requested a password reset for your ISIDRO account. Follow the link below to set a new password:
+mail.forgotpwd.subject=Reset your ISIDRO password
+
+mail.welcome.hello=Welcome {0}!
+mail.welcome.postlink=Note that this link will expire in 24 hours if it''s not activated.
+mail.welcome.prelink=Thanks for signing up for ISIDRO. Please verify your email address by clicking the link below.
+mail.welcome.subject=Welcome to ISIDRO! Please confirm your account
 
 isidroDescription = ISIDRO allows you to securely download files requested from a data broker.
 contactDescription = Contact John Higgins for more information, or to place a request for data.

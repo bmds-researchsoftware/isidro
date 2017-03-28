@@ -6,7 +6,11 @@ import org.joda.time.DateTime
 import java.util.UUID
 import scala.concurrent.Future
 
-case class MailTokenUser(id: String, email: String, expirationTime: DateTime, isSignUp: Boolean) extends MailToken
+case class MailTokenUser(
+  id: String,
+  email: String,
+  expirationTime: DateTime,
+  isSignUp: Boolean) extends MailToken
 
 object MailTokenUser {
   def apply(email: String, isSignUp: Boolean): MailTokenUser =
