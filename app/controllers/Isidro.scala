@@ -252,7 +252,14 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
     val reqs = request.body.asFormUrlEncoded.head.map(_._1).filter(_.startsWith("rq")).map(_.substring(2).toInt)
     val rrs = reqs.map(new RequestRequirement(rid, _))
     Await.result(db.run(requestRequirements.filter(_.request === rid).delete), Duration.Inf)
-    RequestLogService.log(rid, request.identity.id, "Requirements edited.")
+
+    val qRequirements = for {
+      r <- requirements if r.id inSetBind(reqs)
+    } yield (r.title)
+
+    db.run(qRequirements.result).map (reqText =>
+      RequestLogService.log(rid, request.identity.id, s"Requirements edited:\n${reqText.mkString("\n")}")
+    )
     db.run(dataRequests.filter(_.id === rid).map(x => (x.status)).update(Constants.AWAITINGREQUIREMENTS))
     db.run(requestRequirements ++= rrs).map(_ => Redirect(routes.Isidro.requests(false)))
   }
