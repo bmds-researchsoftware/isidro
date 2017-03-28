@@ -8,30 +8,59 @@ field.nick=Nick
 field.email=Email
 field.password=Password
 field.password.repeat=Repeat password
-field.services=Services
+field.services=Role
 
-field.requestTitle=Request Title
-field.requestDescription=Request Description
+field.requestTitle=Title
+field.requestDescription=Description
+field.requestEmail=Email
+field.requestLog=Log
 field.requestProject=Associated Project
 field.requestStatus=Status
 field.requestActivity=Last Activity
 field.requestNotes=Notes
+field.requestPhone=Phone #
+field.requestPI=PI
+field.requestCPHS=CPHS #
 
+send.file.title=Send File
+requirement.progress.title=Edit Requirement Progress
+edit.requirements.title=Edit Request Requirements
+
+download.continue = Please continue to your download here.
 newRequest.title=New Data Request
 submitRequest=Send Request
 myrequests.title=Request History
-brokerrequests.title=Incoming Requests
-brokerrequest.title=Isidro Data Broker Input Screen
-brokerrequest.caption=Upload your file and select the appropriate security, education, and legal requirements.
+editRequirements.title=Edit Request Requirements: {0} - {1}
+brokerclosedrequests.title=Closed Requests
+brokerrequest.title=Edit Request Requirements: 
+brokerrequests.title=Requests
+sendFile.title=Send File: {0} - {1}
+sendFile.caption=Send this requests data.
+request.log.title=View Log: {0} - {1}
+request.log.caption=Activity related to this request
+editRequest.caption=Edit this request.
+editRequirements.caption=Select the requirements for this request.
+trackRequirements.title=Requirement Progress: {0} - {1}
+trackRequirements.caption=Indicate which requirements have been satisfied.
+trackRequirements.listHeader=Satisfied Requirements
+editAwaiting.title=Awaiting Download: {0} - {1}
+editAwaiting.caption=The data for this request is ready to be downloaded.
+editDownloaded.title=Downloaded Request: {0} - {1}
+editDownloaded.caption=The data for this request has been downloaded.
 request.title=Request Details
-brokerRequests=Incoming Requests
+brokerRequests=Requests
 newRequest=New Request
 myRequests=My Requests
-
+edit.request=Update Request
+editRequest.title=Update Request
+updateRequest=Submit
 submit=Submit
 reset=Reset
 back=Back
-go.index=Go to index
+go.index=Continue
+
+status.names=Invalid|New Request|Awaiting Requirements|Ready to Send|Awaiting Download|Downloaded|Closed|Email Message Failure|Error Transferring File|Missing File|File Expired
+hipaa.phi=Names|Geographical Subdivisions Smaller Than State|Dates|Phone Numbers|Fax Numbers|Email Addresses|Social Security Numbers|Medical Record Numbers|Health Plan Beneficiary Numbers|Account Numbers|Certificate/License Numbers|Vehicle Identifiers|Device Identifiers and Serial Numbers|URLs|IP Addresses|Biometric Identifiers|Photographic Images
 
 ################################################################################################
 # TOPBAR
@@ -43,7 +72,6 @@ topbar.hello=Signed in:<br>{0}
 ################################################################################################
 # INDEX
 
-index.title=Authorization example
 index.intro.logged=You are now logged as <span class="text-success">{0}</span>, so you can go to \
 <a href="{1}">My account</a> section to see your contact info.<br>\
 Of course you can <a href="{2}">sign out</a>.
@@ -62,6 +90,9 @@ index.table.authobject=Authorization object
 index.table.services=Services needed
 index.table.allowed=Are you allowed?
 index.table.go=Go there and check yourself
+copyright.url=http://www.dartmouth.edu/copyright
+copyright=Copyright
+copyright.msg=© {0} Trustees of Dartmouth College
 
 ################################################################################################
 # MY ACCOUNT
@@ -82,15 +113,13 @@ signup.ready=You have now your account available
 signin=Sign in
 signin.title=Sign in to ISIDRO
 signin.rememberme=Remember me
-signin.signup.question=Don''t you have an account?
-signin.signup=Sign up now
-signin.forgot.question=Have you forgot your password?
-signin.forgot=Reset it now
+signin.forgot.question=
+signin.forgot=Reset password
 
 signout=Sign out
 
-forgot.title=Have you forgot your password?
-forgot.sent=We''ve just sent an email to {0} with the instructions to reset your password
+forgot.title=Reset password
+forgot.sent=An email has been sent to {0} with the instructions to reset your password
 forgot.reset.title=Reset your password
 forgot.reseted=Your password has been reset
 
@@ -121,29 +150,19 @@ error.notfound.text=For request ''{0}''
 ################################################################################################
 # MAILS
 
-mail.welcome.subject=Welcome to MyWeb! Please confirm your account
-mail.welcome.hello=Welcome {0}!
-mail.welcome.prelink=Thanks for signing up for this great webpage! Please verify your email address by clicking the link below.
-mail.welcome.postlink=Note that this link will expire in 24 hours if it''s not activated.
+mail.download.subject = Your Requested Data
+mail.download.text = Here''s the link to your requested data: <a href="{0}">{0}</a>
 
-mail.forgotpwd.subject=Reset your MyWeb password
-mail.forgotpwd.prelink=Someone (hopefully you) has requested a password reset for your MyWeb account. Follow the link below to set a new password:
 mail.forgotpwd.postlink=Note that this link will expire in 24 hours. If you don''t wish to reset your password, disregard this email and no action will be taken.
+mail.forgotpwd.prelink=Someone (hopefully you) has requested a password reset for your ISIDRO account. Follow the link below to set a new password:
+mail.forgotpwd.subject=Reset your ISIDRO password
 
-mail.sign=Team MyWeb
+mail.welcome.hello=Welcome {0}!
+mail.welcome.postlink=Note that this link will expire in 24 hours if it''s not activated.
+mail.welcome.prelink=Thanks for signing up for ISIDRO. Please verify your email address by clicking the link below.
+mail.welcome.subject=Welcome to ISIDRO! Please confirm your account
 
-
-appName=ScoreReport
-title=ScoreReport
-header=Welcome to ScoreReport!
-insert=Insert Teams here
-Name=Name
-Email=Email
-
-menu.teams = Teams
-menu.events = Events
-menu.rankings = Rankings
-menu.help = Help
-
-generalDescription = Much did had call new drew that kept. Limits expect wonder law she. Now has you views woman noisy match money rooms. To up remark it eldest length oh passed. Off because yet mistake feeling has men. Consulted disposing to moonlight ye extremity. Engage piqued in on coming.
-institutionalDescription = To shewing another demands to. Marianne property cheerful informed at striking at. Clothes parlors however by cottage on. In views it or meant drift to. Be concern parlors settled or do shyness address. Remainder northward performed out for moonlight. Yet late add name was rent park from rich. He always do do former he highly.
+isidroDescription = ISIDRO allows you to securely download files requested from a data broker.
+contactDescription = Contact John Higgins for more information, or to place a request for data.
+generalDescription = ISIDRO Test version. DO NOT SUBMIT ANY PHI.
+institutionalDescription = Version: 0.8.0

@@ -1,5 +1,6 @@
 package controllers
 
+import utils.Constants
 import models._
 import utils.silhouette._
 import utils.silhouette.Implicits._
@@ -26,102 +27,15 @@ class Auth @Inject() (val env: AuthenticationEnvironment, val messagesApi: Messa
   // UTILITIES
 
   implicit val ms = mailService
-  val passwordValidation = nonEmptyText(minLength = 6)
+  val passwordValidation = nonEmptyText(minLength = Constants.minPasswordLength)
   def notFoundDefault(implicit request: RequestHeader) = Future.successful(NotFound(views.html.errors.notFound(request)))
-
-  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
-  // SIGN UP
-
-  val signUpForm = Form(
-    mapping(
-      "id" -> ignored(0: Long),
-      "email" -> email.verifying(maxLength(250)),
-      "emailConfirmed" -> ignored(false),
-      "password" -> nonEmptyText.verifying(minLength(6)),
-      "firstName" -> nonEmptyText,
-      "lastName" -> nonEmptyText,
-      "services" -> nonEmptyText
-    )(User.apply)(User.unapply)
-  )
-
-  /**
-   * Starts the sign up mechanism. It shows a form that the user have to fill in and submit.
-   */
-  def startSignUp = UserAwareAction.async { implicit request =>
-    Future.successful(request.identity match {
-      case Some(_) => Redirect(routes.Application.index)
-      case None => Ok(viewsAuth.signUp(signUpForm))
-    })
-  }
-
-  /**
-   * Handles the form filled by the user. The user and its password are saved and it sends him an email with a link to confirm his email address.
-   */
-  def handleStartSignUp = Action.async { implicit request =>
-    signUpForm.bindFromRequest.fold(
-      formWithErrors => Future.successful(BadRequest(viewsAuth.signUp(formWithErrors))),
-      user => {
-        val loginInfo: LoginInfo = user.email
-        env.identityService.retrieve(loginInfo).flatMap {
-          case Some(_) => Future.successful(BadRequest(viewsAuth.signUp(signUpForm.withError("email", Messages("auth.user.notunique")))))
-          case None => {
-            val token = MailTokenUser(user.email, isSignUp = true)
-            for {
-              savedUser <- env.identityService.save(user)
-              _ <- env.authInfoRepository.add(loginInfo, env.authInfo(user.password))
-              _ <- env.tokenService.create(token)
-            } yield {
-              Mailer.welcome(savedUser, link = routes.Auth.signUp(token.id).absoluteURL())
-              Ok(viewsAuth.almostSignedUp(savedUser))
-            }
-          }
-        }
-      }
-    )
-  }
-
-  /**
-   * Confirms the user's email address based on the token and authenticates him.
-   */
-  def signUp(tokenId: String) = Action.async { implicit request =>
-    env.tokenService.retrieve(tokenId).flatMap {
-      case Some(token) if (token.isSignUp && !token.isExpired) => {
-        env.identityService.retrieve(token.email).flatMap {
-          case Some(user) => {
-            env.authenticatorService.create(user.email).flatMap { authenticator =>
-              if (!user.emailConfirmed) {
-                env.identityService.save(user.copy(emailConfirmed = true)).map { newUser =>
-                  env.publish(SignUpEvent(newUser, request, request2Messages))
-                }
-              }
-              for {
-                cookie <- env.authenticatorService.init(authenticator)
-                result <- env.authenticatorService.embed(cookie, Ok(viewsAuth.signedUp(user)))
-              } yield {
-                env.tokenService.consume(tokenId)
-                env.publish(LoginEvent(user, request, request2Messages))
-                result
-              }
-            }
-          }
-          case None => Future.failed(new IdentityNotFoundException("Couldn't find user"))
-        }
-      }
-      case Some(token) => {
-        env.tokenService.consume(tokenId)
-        notFoundDefault
-      }
-      case None => notFoundDefault
-    }
-  }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // SIGN IN
 
   val signInForm = Form(tuple(
     "identifier" -> email,
-    "password" -> nonEmptyText,
-    "rememberMe" -> boolean
+    "password" -> nonEmptyText
   ))
 
   /**
@@ -129,7 +43,7 @@ class Auth @Inject() (val env: AuthenticationEnvironment, val messagesApi: Messa
    */
   def signIn = UserAwareAction.async { implicit request =>
     Future.successful(request.identity match {
-      case Some(user) => Redirect(routes.Application.index)
+      case Some(user) => Redirect(routes.Isidro.index)
       case None => Ok(viewsAuth.signIn(signInForm))
     })
   }
@@ -141,13 +55,13 @@ class Auth @Inject() (val env: AuthenticationEnvironment, val messagesApi: Messa
     signInForm.bindFromRequest.fold(
       formWithErrors => Future.successful(BadRequest(viewsAuth.signIn(formWithErrors))),
       formData => {
-        val (identifier, password, rememberMe) = formData
+        val (identifier, password) = formData
         env.credentialsProvider.authenticate(Credentials(identifier, password)).flatMap { loginInfo =>
           env.identityService.retrieve(loginInfo).flatMap {
             case Some(user) => for {
-              authenticator <- env.authenticatorService.create(loginInfo).map(env.authenticatorWithRememberMe(_, rememberMe))
+              authenticator <- env.authenticatorService.create(loginInfo).map(env.authenticatorWithRememberMe(_, false))
               cookie <- env.authenticatorService.init(authenticator)
-              result <- env.authenticatorService.embed(cookie, Redirect(routes.Application.index))
+              result <- env.authenticatorService.embed(cookie, Redirect(routes.Isidro.requests(false)))
             } yield {
               env.publish(LoginEvent(user, request, request2Messages))
               result
@@ -169,7 +83,7 @@ class Auth @Inject() (val env: AuthenticationEnvironment, val messagesApi: Messa
    */
   def signOut = SecuredAction.async { implicit request =>
     env.publish(LogoutEvent(request.identity, request, request2Messages))
-    env.authenticatorService.discard(request.authenticator, Redirect(routes.Application.index))
+    env.authenticatorService.discard(request.authenticator, Redirect(routes.Isidro.index))
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -182,7 +96,7 @@ class Auth @Inject() (val env: AuthenticationEnvironment, val messagesApi: Messa
    */
   def forgotPassword = UserAwareAction.async { implicit request =>
     Future.successful(request.identity match {
-      case Some(_) => Redirect(routes.Application.index)
+      case Some(_) => Redirect(routes.Isidro.index)
       case None => Ok(viewsAuth.forgotPassword(emailForm))
     })
   }
@@ -270,33 +184,6 @@ class Auth @Inject() (val env: AuthenticationEnvironment, val messagesApi: Messa
     "password1" -> passwordValidation,
     "password2" -> nonEmptyText
   ) verifying (Messages("auth.passwords.notequal"), passwords => passwords._3 == passwords._2))
-
-  /**
-   * Starts the change password mechanism. It shows a form to insert his current password and the new one.
-   */
-  def changePassword = SecuredAction.async { implicit request =>
-    Future.successful(Ok(viewsAuth.changePassword(changePasswordForm)))
-  }
-
-  /**
-   * Saves the new password and renew the cookie
-   */
-  def handleChangePassword = SecuredAction.async { implicit request =>
-    changePasswordForm.bindFromRequest.fold(
-      formWithErrors => Future.successful(BadRequest(viewsAuth.changePassword(formWithErrors))),
-      passwords => {
-        env.credentialsProvider.authenticate(Credentials(request.identity.email, passwords._1)).flatMap { loginInfo =>
-          for {
-            _ <- env.authInfoRepository.update(loginInfo, env.authInfo(passwords._2))
-            authenticator <- env.authenticatorService.create(loginInfo)
-            result <- env.authenticatorService.renew(authenticator, Redirect(routes.Application.myAccount).flashing("success" -> Messages("auth.password.changed")))
-          } yield result
-        }.recover {
-          case e: ProviderException => BadRequest(viewsAuth.changePassword(changePasswordForm.withError("current", Messages("auth.currentpwd.incorrect"))))
-        }
-      }
-    )
-  }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // ACCESS DENIED

@@ -4,6 +4,7 @@ import models.User
 import play.twirl.api.Html
 import play.api.i18n.Messages
 import views.html.mails
+import slick.driver.JdbcProfile
 
 object Mailer {
 
@@ -25,4 +26,21 @@ object Mailer {
     )
   }
 
+  def sendDownloadEmail(email: String, link: String)(implicit ms: MailService, m: Messages)={
+    val mailTxt = mails.downloadLinkTxt(link)
+    ms.sendEmailAsync(email)(
+      subject = Messages("mail.download.subject"),
+      bodyHtml = mails.downloadLink(link),
+      bodyText = mailTxt
+    )
+    mailTxt
+  }
+
+  def sendPasswordEmail(email: String, password: String)(implicit ms: MailService, m: Messages) {
+    ms.sendEmailAsync(email)(
+      subject = Messages("mail.download.subject"),
+      bodyHtml = mails.password(password),
+      bodyText = mails.passwordTxt(password)
+    )
+  }
 }

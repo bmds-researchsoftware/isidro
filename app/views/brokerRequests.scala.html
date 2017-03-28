@@ -1,4 +1,4 @@
-@(dr: List[DataRequest])(implicit request: RequestHeader, user: User, messages: Messages)
+@(dr: List[DataRequest], closed: Boolean = false)(implicit request: RequestHeader, user: User, messages: Messages)
 
 @import controllers.routes
 
@@ -6,36 +6,39 @@
 	
   @tags.alertFromRequest(request, "success")
 	
-  <h1>@Messages("brokerrequests.title")</h1>
-  <div class="container-fluid tablestyle">
+  <h1>@{if(closed)Messages("brokerclosedrequests.title") else Messages("brokerrequests.title")}</h1>
+  @if(closed) {
+    <a href="/requests">View open requests</a>
+  } else {
+    <a href="/requests/closed">View closed requests</a>
+  }    
+  <div class="container-fluid tablestyle shadowed">
     <div class="row">
-      <div class="col-sm-2">@Messages("field.requestTitle")</div>
-      <div class="col-sm-2">@Messages("field.requestProject")</div>
-      <div class="col-sm-2">@Messages("field.requestStatus")</div>
-      <div class="col-sm-2">@Messages("field.requestActivity")</div>
-      <div class="col-sm-4">@Messages("field.requestNotes")</div>
+      <div class="col-sm-2 header">@Messages("field.requestStatus")</div>
+      <div class="col-sm-2 header">@Messages("field.requestTitle")</div>
+      <div class="col-sm-4 header">@Messages("field.requestDescription")</div>
+      <div class="col-sm-3 header">@Messages("field.requestEmail")</div>
+      <div class="col-sm-1 header">@Messages("field.requestLog")</div>
     </div>
-  
+
     @dr.map { r =>
-      <a href="update@r.id">
-        <div class="row bx">
-          <div class="col-sm-2">
-            @r.title
-          </div>
-          <div class="col-sm-2">
-            Project Name
-          </div>
-          <div class="col-sm-2">
-            Pending
-          </div>
-          <div class="col-sm-2">
-            7/15/2015
-          </div>
-          <div class="col-sm-4">
-            @r.description
-          </div>
+      <div class="row bx" onclick="document.location.href = '/request/@r.id/edit@r.status'">
+        <div class="col-sm-2">
+          @r.statusString
         </div>
-      </a>
+        <div class="col-sm-2">
+          @r.title
+        </div>
+        <div class="col-sm-4">
+          @r.description
+        </div>
+        <div class="col-sm-3">
+          @r.email
+        </div>
+        <div class="col-sm-1">
+          <a href="@routes.Isidro.viewLog(r.id)">Log</a>
+        </div>
+      </div>
     }
   </div>
 }

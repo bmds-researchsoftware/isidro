@@ -1,7 +1,28 @@
-body {
-    padding-top: 70px;
+html {
+  height: 100%;
+  box-sizing: border-box;
+}
+*,
+*:before,
+*:after {
+  box-sizing: inherit;
 }
 
+body {
+  position: relative;
+  background-color: #f1f1f1;
+  min-height: 100%;
+  font-family: "Ubuntu", Helvetica, sans-serif;
+  color: rgba(13,13,13,.65);
+  line-height: 1.8;
+  letter-spacing: .01em;
+  font-size: 14px;
+}
+
+.footer {
+  padding: 1rem;
+  text-align: center;
+}
 #signin-helper {
     margin-top: 50px;
     td {
@@ -9,8 +30,34 @@ body {
     }
 }
 
-.purple {
-    border: 1px solid #ccc;
+.navbar-logo {
+  display: inline;
+}
+
+.navbar-logo img {
+  margin-top: -10px;
+  max-height: 200%;
+}
+.box-center {
+  padding: 1em 2em;
+  background: #fff;
+  box-shadow: 0 0 0 0, 0 6px 12px rgba(34,34,34,.1);
+}
+
+.navbar-brand {
+  padding-left: 0;
+  color: white;
+}
+.navbar-logo .navbar-brand {
+  padding-right: 0;
+  padding-left: 0;
+}
+  
+
+form input[type="checkbox"] {
+  height: 15px;
+  width: 15px;
+  margin: 10px 0 0;
 }
 
 .brk {
@@ -19,13 +66,9 @@ body {
 }
 
 .reqinfo {
-  border: 1px solid #ccc;
+  border: 1px solid #aaa;
+  line-height: 1.5em;
   padding: 7px;
-  display: table;
-}
-
-.dbtable {
-
 }
 
 .uploaded {
@@ -35,8 +78,38 @@ body {
   
 }
 
-.requirements {
+.pageheader {
+  font-size: 250%;
+  color: #333333;
+}
+
+.content {
+  background: white;
+  box-shadow: 0 0 0 0, 0 6px 12px rgba(34,34,34,.1);
+  padding: 1em;
+  margin-left: 0px;
+}
+
+.fieldlabel {
+  font-weight: 500;
+  text-align: right;
+}
+
+.listheader {
+  font-weight: bold;
+  text-decoration: underline;
   margin-top: 2em;
+}
+a {
+  color: #6db33f;
+  transition: color 150ms ease;
+}
+.requpdate,
+.left {
+  margin-left: 0px;
+}  
+.requirements {
+  margin-top: .5em;
 }
 
 .requirements label {
@@ -48,16 +121,13 @@ body {
   font-size: inherit;
 }
 .submitrow {
-  text-align: center;
+  text-align: left;
   margin-top: 2em;
-}
-
-.requpdate h1, .requpdate h5 {
-  text-align: center;
 }
 
 .reqtitle {
   padding: 0px 0px 1px 2px;
+  font-weight: bold
 }
 
 .requestform textarea.form-control {
@@ -75,9 +145,16 @@ body {
   display:         flex;
 }
 
+.description h4 {
+  color: black;
+}
+.header {
+  font-weight: bold;
+  background: #ccc;
+}
 .description {
-  border: 1px solid #bbb;
   padding: 5px 20px 15px 20px;
+  color: rgba(13,13,13,.65);
 }
 
 .bx {
@@ -98,11 +175,11 @@ a .bx {
 }
 
 
-a:nth-of-type(odd) .bx {
-  background: #eaeaea;
+.shadowed {
+  box-shadow: 0 0 0 0, 0 6px 12px rgba(34,34,34,.1);
 }
 
-a:nth-of-type(even) .bx {
+.bx {
   background: #fff;
 }
 
@@ -115,10 +192,50 @@ a:nth-of-type(even) .bx {
   min-height: 8px;
 }
 
-a .bx:hover {
+.bx:hover {
   background-color: #ffd;
   text-decoration: none;
+  cursor: pointer;
 }
 a:hover {
   text-decoration: none;
 }
+label {
+  font-weight: normal;
+}
+fieldset {
+  border: 1px solid;
+  border-color: #ccc #999 #999 #ccc;
+  margin: 0 2px;
+  padding: 0.35em 0.625em 0.75em;
+  min-width: 0;
+}
+
+textarea.notes {
+  height: 10em;
+}
+
+dt, dd {
+  line-height: 1.42857143;
+}
+
+a.button {
+  -webkit-appearance: button;
+  -moz-appearance: button;
+  appearance: button;
+  
+  text-decoration: none;
+  color: rgba(13,13,13,.65);
+  padding: 3px 6px;
+  line-height: inherit;
+  margin-left: 3em;
+}
+
+.pre {
+  white-space: pre;
+  overflow: auto;
+}
+
+.logrow div {
+  border-top: 1px solid #ddd;
+}  

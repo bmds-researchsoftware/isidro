@@ -1,0 +1,14 @@
+@(uniqueName: String)(implicit loggedUser: Option[User], messages: Messages)
+@views.html.templates.default(
+  title = "Home",
+  loggedUser,
+  tab = "index",
+  withMainTabs=false,
+  withAuth=false,
+  withTitle=true,
+  scripts = Html("<script src='https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js'></script><script src='/public/javascripts/download.js'></script>")) {
+    <div class="container-fluid content"> 
+      <h1>Downloads</h1> 
+      <div id="downloadLinkDiv"><a id="downloadLink" target="_blank" href="download/@uniqueName" onclick="do_download()">@Messages("download.continue")</a></div>
+    </div>
+  }  

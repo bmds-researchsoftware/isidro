@@ -11,6 +11,7 @@ scalacOptions ++= Seq("-feature", "-deprecation", "-unchecked", "-language:refle
 resolvers ++= Seq(
 	"Scalaz Bintray Repo" at "https://dl.bintray.com/scalaz/releases",
 	"Atlassian Releases" at "https://maven.atlassian.com/public/",
+    "sonatype-releases" at "https://oss.sonatype.org/content/repositories/releases/",
 	Resolver.sonatypeRepo("snapshots")
 )
 
@@ -45,6 +46,19 @@ libraryDependencies ++= Seq(
   "net.codingwell" %% "scala-guice" % "4.0.0",  // ??
   "net.ceedubs" %% "ficus" % "1.1.2",  // ??
   "com.mohiva" %% "play-silhouette-testkit" % "3.0.0" % "test", // ??
+  "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % "test", // scala test + play
+
+  // file conversion libraries
+  "org.csveed" % "csveed" % "0.4.0",
+  "org.bouncycastle" % "bcprov-jdk15on" % "1.54",
+  "org.bouncycastle" % "bcpkix-jdk15on" % "1.54",
+  "org.apache.santuario" % "xmlsec" % "2.0.6",
+  "org.apache.commons" % "commons-csv" % "1.2",
+  "commons-io" % "commons-io" % "2.4",
+  "org.apache.poi" % "poi" % "3.14",
+  "org.apache.poi" % "poi-ooxml" % "3.14",
+  "org.apache.poi" % "poi-ooxml-schemas" % "3.14",
+  "org.apache.xmlbeans" % "xmlbeans" % "2.6.0",
   filters
 )
 

@@ -14,7 +14,7 @@ import javax.inject.{ Singleton, Inject }
 
 @Singleton
 class AuthenticationEnvironment @Inject() (val conf: Configuration) extends Environment[User, CookieAuthenticator] with utils.ConfigSupport {
-	
+
   val identityService = new UserService
   val passwordInfoDAO = new PasswordInfoDAO()
   val tokenService = new MailTokenUserService()
@@ -28,7 +28,7 @@ class AuthenticationEnvironment @Inject() (val conf: Configuration) extends Envi
   val passwordHasher = new BCryptPasswordHasher()
   def authInfo(password: String): PasswordInfo = passwordHasher.hash(password)
 
-	val authenticatorService = {
+  val authenticatorService = {
     val cfg = requiredConfig("silhouette.authenticator")
     new CookieAuthenticatorService(
       CookieAuthenticatorSettings(
@@ -66,7 +66,8 @@ class AuthenticationEnvironment @Inject() (val conf: Configuration) extends Envi
         idleTimeout = rememberMeParams._2,
         cookieMaxAge = rememberMeParams._3
       )
-    } else
+    } else {
       authenticator
+    }
   }
 }

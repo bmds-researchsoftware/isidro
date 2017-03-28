@@ -6,7 +6,7 @@ import slick.driver.JdbcProfile
 trait UserTable {
   protected val driver: JdbcProfile
   import driver.api._
-  class Users(tag: Tag) extends Table[User](tag, "user") {
+  class Users(tag: Tag) extends Table[User](tag, "isidro_user") {
     def id = column[Long]("userId", O.PrimaryKey)
     def email = column[String]("email")
     def emailConfirmed = column[Boolean]("emailConfirmed")

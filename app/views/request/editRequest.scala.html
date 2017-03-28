@@ -1,0 +1,31 @@
+@(rid: Int, requestForm: Form[DataRequest])(implicit request: RequestHeader, user: User, messages: Messages)
+@import b3.vertical.fieldConstructor
+@import controllers.routes
+@import models.DataRequest
+@import helper._
+
+@views.html.templates.logged(title = Messages("edit.request"), tab = "update") {
+@tags.alertFromRequest(request, "error")
+
+@b3.form(routes.Isidro.handleEditRequest(rid)) {
+  @CSRF.formField
+
+  <fieldset class="requestform">
+    <legend>@Messages("editRequest.title")</legend>
+    <label for="title">Title:</label>
+    @b3.text(requestForm("title"), '_hiddenLabel -> Messages("field.title"), 'placeholder -> Messages("field.requestTitle"), 'autofocus -> true)
+    <label for="description">Description:</label>
+    @b3.textarea(requestForm("description"), '_hiddenLabel -> Messages("field.password"), 'placeholder -> Messages("field.requestDescription"))
+    <label for="email">Email:</label>
+    @b3.text(requestForm("email"), '_hiddenLabel -> Messages("field.email"), 'placeholder -> Messages("field.requestEmail"))
+    <label for="phone">Phone:</label>
+    @b3.text(requestForm("phone"), '_hiddenLabel -> Messages("field.phone"), 'placeholder -> Messages("field.requestPhone"))
+    <label for="pi">PI:</label>
+    @b3.text(requestForm("pi"), '_hiddenLabel -> Messages("field.PI"), 'placeholder -> Messages("field.requestPI"))
+    <label for="cphs">CPHS #:</label>
+    @b3.text(requestForm("cphs"), '_hiddenLabel -> Messages("field.CPHS"), 'placeholder -> Messages("field.requestCPHS"))
+    <p />
+    @b3.submit('class -> "btn btn-primary btn-block"){ @Messages("updateRequest") }
+  </fieldset>
+  }
+}

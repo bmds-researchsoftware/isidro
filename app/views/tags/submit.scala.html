@@ -1,0 +1,10 @@
+@(state: Int, back: String)
+@import controllers.routes
+
+<div class="row">
+  <div class="col-sm-12 submitrow">
+    <input type="submit" /> <a href="@routes.Isidro.requests(false)" class="button">Cancel</a>
+    <br /><br />
+    <a href="edit@state">&#11207; @back</a>
+  </div>
+</div>

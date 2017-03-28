@@ -1,42 +1,34 @@
-@(title: String, loggedUser: Option[User], withMainTabs: Boolean = true, tab: String = "", styles: Html = Html(""), scripts: Html = Html(""), modals: Html = Html(""))(content: Html)(implicit messages: Messages)
+@(title: String, loggedUser: Option[User], withMainTabs: Boolean = true, tab: String = "", styles: Html = Html(""), scripts: Html = Html(""), modals: Html = Html(""), withAuth: Boolean = true, withTitle: Boolean = true)(content: Html)(implicit messages: Messages)
 
 @import views.html.tags.auth._
 @import controllers.routes
-
-<!-- #displayToggleLang = {
-	#if(messages.lang.code == "en") {
-		<li><a href="#routes.Application.selectLang("es")">Español</a></li>
-	} else {
-		<li><a href="#routes.Application.selectLang("en")">English</a></li>
-	}
-} -->
 
 @navbarContent = {
 	@if(withMainTabs) {
 		<ul class="nav navbar-nav">
 			@loggedUser.map { implicit user =>
 				@withService("master") {
-					<li class="@("active".when(tab == "brokerrequests"))"><a href="@routes.Application.requests">@Messages("brokerRequests")</a></li>
+					<li class="@("active".when(tab == "brokerrequests"))"><a href="@routes.Isidro.requests(false)">@Messages("brokerRequests")</a></li>
 				}
-			        <li class="@("active".when(tab == "myrequests"))"><a href="@routes.Application.myRequests">@Messages("myRequests")</a></li>
-			        <li class="@("active".when(tab == "newrequest"))"><a href="@routes.Application.newRequest">@Messages("newRequest")</a></li>
-				<li class="@("active".when(tab == "myaccount"))"><a href="@routes.Application.myAccount">@Messages("topbar.myaccount")</a></li>
+@*			        <li class="@("active".when(tab == "myrequests"))"><a href="@routes.Isidro.myRequests">@Messages("myRequests")</a></li> *@
+			        <li class="@("active".when(tab == "newrequest"))"><a href="@routes.Isidro.newRequest">@Messages("newRequest")</a></li>
+@*				<li class="@("active".when(tab == "myaccount"))"><a href="@routes.Isidro.myAccount">@Messages("topbar.myaccount")</a></li> *@
 			}
 		</ul>
 	}
-	<ul class="nav navbar-nav navbar-right">
-		@loggedUser.map { user =>
-			<li class="navbar-text text-right" style="margin: 5px 15px">
-				@Html(Messages("topbar.hello", s"""<span class="text-success">${user.fullName}</span>"""))
+    @if(withAuth) {
+	    <ul class="nav navbar-nav navbar-right">
+		  @loggedUser.map { user =>
+		    <li class="navbar-text text-right" style="margin: 5px 15px">
+			  @Html(Messages("topbar.hello", s"""<span class="text-success">${user.fullName}</span>"""))
 			</li>
-<!--			#displayToggleLang -->
 			<li><a href="@routes.Auth.signOut">@Messages("signout")</a></li>
-		}.getOrElse {
-<!--			#displayToggleLang -->
-			<li class="@("active".when(tab == "signin"))"><a href="@routes.Auth.signIn">@Messages("signin")</a></li>
-			<li class="@("active".when(tab == "signup"))"><a href="@routes.Auth.startSignUp">@Messages("signup")</a></li>
-		}
-	</ul>
+		  }.getOrElse {
+@*			<li class="@("active".when(tab == "signin"))"><a href="@routes.Auth.signIn">@Messages("signin")</a></li> *@
+@*			<li class="@("active".when(tab == "signup"))"><a href="@routes.Auth.startSignUp">@Messages("signup")</a></li> *@
+  	      }
+	    </ul>
+    }
 }
 
-@main2(title, navbarContent, styles, scripts, modals)(content)
+@main(title, navbarContent, styles, scripts, modals, withTitle = withTitle)(content)

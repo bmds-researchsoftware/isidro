@@ -1,0 +1,24 @@
+@(r: DataRequest)
+<div class="reqtitle">Request</div>
+<div class="container-fluid reqinfo">
+  <div class="row">
+    <div class="col-xs-4 col-sm-2 fieldlabel">Email:</div>
+    <div class="col-xs-8 col-sm-10">@r.email</div>
+  </div>
+  <div class="row">
+    <div class="col-xs-4 col-sm-2 fieldlabel">PI:</div>
+    <div class="col-xs-8 col-sm-10">@r.pi</div>
+  </div>
+  <div class="row">
+    <div class="col-xs-4 col-sm-2 fieldlabel">Status:</div>
+    <div class="col-xs-8 col-sm-10">@r.statusString</div>
+  </div>
+  <div class="row">
+    <div class="col-xs-4 col-sm-2 fieldlabel">Title:</div>
+    <div class="col-xs-8 col-sm-10">@r.title</div>
+  </div>
+  <div class="row">
+    <div class="col-xs-4 col-sm-2 fieldlabel">Description:</div>
+    <div class="col-xs-8 col-sm-10">@r.description</div>
+  </div>
+</div>
