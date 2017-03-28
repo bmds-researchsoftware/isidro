@@ -397,13 +397,14 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
     try {
       val workbook = CsvReader.getExcelWorkbook(Constants.isidroWorksheetName, csvContents)
       val os = new FileOutputStream(xlsxPath)
-      workbook.write(os)
-      if (watermark) {
+      val rval = if (watermark) {
         ExcelWatermark.watermark(workbook, Constants.isidroWorksheetName, new File(Constants.watermarkImagePath))
         s"Watermark: ${Constants.watermarkImagePath}\n"
       } else {
         ""
       }
+      workbook.write(os)
+      rval
     } catch {
       case _:Throwable => "Watermark error"
     }
