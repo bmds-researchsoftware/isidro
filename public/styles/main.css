@@ -204,7 +204,6 @@ label {
   font-weight: normal;
 }
 fieldset {
-  border: 1px solid;
   border-color: #ccc #999 #999 #ccc;
   margin: 0 2px;
   padding: 0.35em 0.625em 0.75em;

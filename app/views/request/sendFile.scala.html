@@ -4,7 +4,6 @@
 @import helper._
 
 @views.html.templates.logged(title = Messages("send.file.title"), tab = "update") {
-  @tags.alertFromRequest(request, "success")
   <hr/>
   <div class="container-fluid content">
     <div class="row">
@@ -14,7 +13,7 @@
       </div>
     </div>
     <p />
-    @requestBox(r)
+    @views.html.tags.requestBox(r)
     <br/>
     <form method="post" enctype="multipart/form-data">
       @CSRF.formField
@@ -52,7 +51,7 @@
           <input id="other" name="other" />
         </div>
       </div>
-      @tags.submit(2, "Edit Requirement Progress")
+      @tags.submit(2, Some("Edit Requirement Progress"))
     </form>
   </div>
 }

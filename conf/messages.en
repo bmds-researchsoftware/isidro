@@ -25,8 +25,12 @@ field.requestCPHS=CPHS #
 send.file.title=Send File
 requirement.progress.title=Edit Requirement Progress
 edit.requirements.title=Edit Request Requirements
-
 download.continue = Please continue to your download here.
+download.deleted = Data file {0} expired and deleted.
+download.downloaded = File downloaded and deleted.
+download.expired = File has expired or has been deleted.
+download.mailed = Download link has been mailed
+download.missing = Data file {0} does not exist on disk.
 newRequest.title=New Data Request
 submitRequest=Send Request
 myrequests.title=Request History
@@ -36,9 +40,17 @@ brokerrequest.title=Edit Request Requirements:
 brokerrequests.title=Requests
 sendFile.title=Send File: {0} - {1}
 sendFile.caption=Send this requests data.
+request.close=Close request
+request.edited=Request Edited:\n{0}
 request.log.title=View Log: {0} - {1}
 request.log.caption=Activity related to this request
-editRequest.caption=Edit this request.
+request.no.file=No file for request: {0}
+request.not.found=Request not found
+request.progress=Requirement progress updated\nComplete:\n{0}\nIncomplete:\n{1}
+request.requirements.edited=Requirements edited:\n{0}
+request.updated=Request status has been updated to: {0}
+request.withdrawn=Data file {0} withdrawn and deleted.
+editRequest.caption=Making any changes to the request will result with it returning to New Request status.
 editRequirements.caption=Select the requirements for this request.
 trackRequirements.title=Requirement Progress: {0} - {1}
 trackRequirements.caption=Indicate which requirements have been satisfied.
@@ -142,6 +154,7 @@ denied.text=You do not have access to this page
 ################################################################################################
 # ERRORS
 
+error.chooseFile=Please choose a data file to send.
 error.unknown.title=Oops, an error occurred
 error.unknown.text=This exception has been logged with id <strong>{0}</strong>.
 error.notfound.title=Handler Not Found

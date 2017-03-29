@@ -4,7 +4,6 @@
 @import helper._
 
 @views.html.templates.logged(title = Messages("editDownloaded.title", r.id, r.title), tab = "update") {
-  @tags.alertFromRequest(request, "success")
   <hr />
   <div class="container-fluid content">
     <div class="row">
@@ -13,7 +12,7 @@
         <h5>@Messages("editDownloaded.caption")</h5>
       </div>
     </div>
-    @requestBox(r)
+    @views.html.tags.requestBox(r)
     <form method="post">
       @CSRF.formField
       <p>

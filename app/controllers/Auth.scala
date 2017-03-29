@@ -27,7 +27,7 @@ class Auth @Inject() (val env: AuthenticationEnvironment, val messagesApi: Messa
   // UTILITIES
 
   implicit val ms = mailService
-  val passwordValidation = nonEmptyText(minLength = Constants.minPasswordLength)
+  val passwordValidation = nonEmptyText(minLength = Constants.getInt("minPasswordLength"))
   def notFoundDefault(implicit request: RequestHeader) = Future.successful(NotFound(views.html.errors.notFound(request)))
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

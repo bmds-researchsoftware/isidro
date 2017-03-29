@@ -5,7 +5,6 @@
 
 @views.html.templates.logged(title = Messages("edit.requirements.title"), tab = "update") {
 	
-  @tags.alertFromRequest(request, "success")
     <hr />
     <div class="container-fluid content">
       <div class="row">
@@ -17,7 +16,7 @@
       <p />
       <form method="post">
         @CSRF.formField
-        @requestBox(r)
+        @views.html.tags.requestBox(r)
         <div class="row">
           <div class="col-sm-4 col-sm-offset-2 left">
             <div class="requirements">
@@ -31,7 +30,7 @@
             </div>  
           </div>
         </div>
-        @tags.submit(0, "Edit Request")
+        @tags.submit(0, Some("Edit Request"))
       </form>
     </div>
 }

@@ -1,4 +1,4 @@
-@(uniqueName: String)(implicit loggedUser: Option[User], messages: Messages)
+@(uniqueName: String)(implicit loggedUser: Option[User], request: RequestHeader, messages: Messages)
 @views.html.templates.default(
   title = "Home",
   loggedUser,
