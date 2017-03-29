@@ -1,0 +1,4 @@
+@(request: RequestHeader)
+@request.flash.get("error").map { msg => @alert(msg, "error") }
+@request.flash.get("info").map { msg => @alert(msg, "info") }
+@request.flash.get("success").map { msg => @alert(msg, "success") }
