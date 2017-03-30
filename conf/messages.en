@@ -178,4 +178,4 @@ mail.welcome.subject=Welcome to ISIDRO! Please confirm your account
 isidroDescription = ISIDRO allows you to securely download files requested from a data broker.
 contactDescription = Contact John Higgins for more information, or to place a request for data.
 generalDescription = ISIDRO Test version. DO NOT SUBMIT ANY PHI.
-institutionalDescription = Version: 0.8.0
+institutionalDescription = Version: 0.9.0

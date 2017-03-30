@@ -66,4 +66,3 @@ object UserServ extends UserTable with HasDatabaseConfig[JdbcProfile] {
     finally db.close
   }
 }
-

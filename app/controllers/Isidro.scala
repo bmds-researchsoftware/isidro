@@ -340,7 +340,7 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
    */
   def handleWithdrawFile(rid: Int) = SecuredAction.async { implicit request =>
     val fileq = for {
-      uf <- uniqueFiles if uf.requestId === rid
+      uf <- uniqueFiles if (uf.requestId === rid && !uf.isDeleted)
       r <- dataRequests if uf.requestId === r.id
     } yield (uf, r)
     db.run(fileq.result).map(res => res.headOption match {
@@ -353,7 +353,7 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
       }
       case _ => {
         Logger.error(Messages("request.no.file", rid))
-        Redirect(routes.Isidro.requests(false))
+        Redirect(routes.Isidro.requests(false)).flashing(("error" -> Messages("request.no.file", rid)))
       }
     })
   }
@@ -404,7 +404,7 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
       }
       case _ => {
         Logger.error(s"no file: $uniqueName")
-        Redirect(routes.Isidro.index).flashing(("Error" -> Messages("download.expired")))
+        Redirect(routes.Isidro.index).flashing(("error" -> Messages("download.expired")))
       }
     })
   }
