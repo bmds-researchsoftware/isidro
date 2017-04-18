@@ -60,8 +60,8 @@ public final class ExcelWatermark
             // add a picture
             final ClientAnchor anchor = helper.createClientAnchor();
 
-            anchor.setCol1(11);
-            anchor.setRow1(18);
+            anchor.setCol1(1);
+            anchor.setRow1(1);
             final Picture pict = drawing.createPicture(anchor, picIndx);
             pict.resize();
             is.close();
