@@ -4,31 +4,29 @@
 @import helper._
 
 @views.html.templates.logged(title = Messages("requirement.progress.title"), tab = "update") {
-	
-    <hr />
-    <div class="container-fluid content">
-      <div class="row">
-        <div class="col-sm-8 col-sm-offset-2 requpdate">
-          <div class="pageheader">@Messages("trackRequirements.title", r.id, r.title)</div>
-          @Messages("trackRequirements.caption")
-        </div>
+  <hr />
+  <div class="container-fluid content">
+    <div class="row">
+      <div class="col-sm-8 col-sm-offset-2 requpdate">
+        <div class="pageheader">@Messages("trackRequirements.title", r.id, r.title)</div>
+        @Messages("trackRequirements.caption")
       </div>
-      <p />
-      <form method="post">
-        @CSRF.formField
-        @views.html.tags.requestBox(r)
-        <div class="row">
-          <div class="col-sm-4 col-sm-offset-2 left">
-            <div class="listheader">@Messages("trackRequirements.listHeader")</div>
-            <div class="requirements">
-              @req.map { rq =>
-                <input type="checkbox" name="rq@rq._1" id="rq@rq._1" @if(rq._2){checked} /> <label for="rq@rq._1">@rq._3</label><br>
-              }
-            </div>  
+    </div>
+    <p />
+    <form method="post">
+      @CSRF.formField
+      @views.html.tags.requestBox(r)
+      <div class="row">
+        <div class="col-sm-4 col-sm-offset-2 left">
+          <div class="listheader">@Messages("trackRequirements.listHeader")</div>
+          <div class="requirements">
+            @req.map { rq =>
+              <input type="checkbox" name="rq@rq._1" id="rq@rq._1" @if(rq._2){checked} /> <label for="rq@rq._1">@rq._3</label><br>
+            }
           </div>
         </div>
-        @tags.submit(1, Some("Edit Requirements"))
-      </form>
-    </div>
+      </div>
+      @tags.submit(1, Some("Edit Requirements"))
+    </form>
+  </div>
 }
-

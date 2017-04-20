@@ -24,7 +24,7 @@ object RequestLogService extends RequestLogTable with HasDatabaseConfig[JdbcProf
 
   val logs = TableQuery[RequestLogs]
 
-  def log(rid: Int, user: Long, log: String) {
+  def log(rid: Int, user: Long, log: String): Unit = {
     Logger.debug(s"Log: $rid $user $log")
     db.run(logs += RequestLog(0L, rid, user, log, new java.sql.Timestamp(new java.util.Date().getTime)))
   }

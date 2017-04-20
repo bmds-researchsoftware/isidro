@@ -1,37 +1,30 @@
 package controllers
 
-import edu.dartmouth.geisel.isidro.read.CsvReader
-import edu.dartmouth.geisel.isidro.read.DataIntegrityMismatchException
-import edu.dartmouth.isidro.util.TextUtils
-import models.{DataRequest, RequestLogService, RequestRequirement, UniqueFileServ}
-import tables.{DataRequestTable, RequirementTable, RequestLogTable, RequestRequirementTable, UniqueFileTable}
-import utils.Constants
-import utils.FileUtils
-import utils.MailService
-import utils.Mailer
-import utils.RandomUtils
-import utils.silhouette._
-import views.html.{ auth => viewsAuth }
-
 import java.io.File
-import java.net.MalformedURLException
-import java.net.URL
+import java.net.{URL, MalformedURLException}
 import java.nio.file.Paths
-import javax.inject.Inject
-import javax.mail.MessagingException
-import play.api.Logger
-import play.api.Play
-import play.api.data.Form
-import play.api.data.Forms.{email, mapping, ignored, nonEmptyText, text}
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
-import play.api.i18n.{ MessagesApi, Messages, Lang, I18nSupport }
-import play.api.libs.Files.TemporaryFile
-import play.api.mvc.Action
+
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.Future
 import scala.concurrent.duration.Duration
+
+import edu.dartmouth.geisel.isidro.read.CsvReader
+import edu.dartmouth.isidro.util.TextUtils
+import javax.inject.Inject
+import javax.mail.MessagingException
+import models.{DataRequest, RequestLogService, RequestRequirement}
+import play.api.{Play, Logger}
+import play.api.data.Form
+import play.api.data.Forms.{email, ignored, mapping, nonEmptyText, text}
+import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig}
+import play.api.i18n.{I18nSupport, Lang, Messages, MessagesApi}
+import play.api.libs.Files.TemporaryFile
+import play.api.mvc.Action
 import slick.driver.JdbcProfile
+import tables.{DataRequestTable, RequestLogTable, RequestRequirementTable, RequirementTable, UniqueFileTable}
+import utils.{Mailer, MailService, FileUtils, Constants}
+import utils.silhouette._
 
 trait Tables extends DataRequestTable with RequirementTable with RequestRequirementTable with UniqueFileTable with RequestLogTable
 
