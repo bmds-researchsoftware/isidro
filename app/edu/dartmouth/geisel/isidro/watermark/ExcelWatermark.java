@@ -61,6 +61,7 @@ public final class ExcelWatermark
             final ClientAnchor anchor = helper.createClientAnchor();
             anchor.setCol1(1);
             anchor.setRow1(1);
+
             final Picture pict = drawing.createPicture(anchor, picIndx);
             pict.resize();
             is.close();
