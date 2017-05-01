@@ -1,16 +1,16 @@
-@(requestForm: Form[DataRequest])(implicit request: RequestHeader, user: User, messages: Messages)
+@(requestForm: Form[DataRequest])(implicit request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets, user: User)
 @import b3.vertical.fieldConstructor
-@import controllers.routes
+@import controllers.pages.routes
 @import models.DataRequest
 @import helper._
 
-@views.html.templates.logged("New Request", tab = "newrequest") {
+@views.html.main("New Request", Some(user)) {
 
-  @b3.form(routes.Isidro.handleNewRequest) {
+  @b3.form(routes.ApplicationController.handleNewRequest) {
     @CSRF.formField
 
+    <h1>@Messages("newRequest.title")</h1>
     <fieldset class="requestform">
-      <legend>@Messages("newRequest.title")</legend>
       <label for="title">Title:</label>
       @b3.text(requestForm("title"), '_hiddenLabel -> Messages("field.title"), 'placeholder -> Messages("field.requestTitle"), 'autofocus -> true)
       <label for="description">Description:</label>

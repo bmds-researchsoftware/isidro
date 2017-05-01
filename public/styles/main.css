@@ -19,6 +19,10 @@ body {
   font-size: 14px;
 }
 
+.alert {
+  margin-bottom: 0px;
+}
+
 .footer {
   padding: 1rem;
   text-align: center;
@@ -30,6 +34,19 @@ body {
     }
 }
 
+#password-strength-meter {
+  width: 100%;
+}
+
+.navbar {
+  margin-bottom: 0;
+}
+.navbar .username {
+  color: #cdcdcd;
+  padding-top: 15px;
+  padding-bottom: 15px;
+  line-height: 20px;
+}
 .navbar-logo {
   display: inline;
 }
@@ -37,6 +54,7 @@ body {
 .navbar-logo img {
   margin-top: -10px;
   max-height: 200%;
+  margin-right: 1em;
 }
 .box-center {
   padding: 1em 2em;

@@ -1,7 +1,15 @@
-import play.api.http.HttpFilters
-import play.filters.csrf.CSRFFilter
+package utils
+
 import javax.inject.Inject
 
-class Filters @Inject() (csrfFilter: CSRFFilter) extends HttpFilters {
-  def filters = Seq(csrfFilter)
+import play.api.http.HttpFilters
+import play.api.mvc.EssentialFilter
+import play.filters.csrf.CSRFFilter
+import play.filters.headers.SecurityHeadersFilter
+
+/**
+ * Provides filters.
+ */
+class Filters @Inject() (csrfFilter: CSRFFilter, securityHeadersFilter: SecurityHeadersFilter) extends HttpFilters {
+  override def filters: Seq[EssentialFilter] = Seq(csrfFilter, securityHeadersFilter)
 }

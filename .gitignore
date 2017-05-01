@@ -86,3 +86,8 @@ Thumbs.db
 /.idea
 /.idea_modules
 
+# Configuration files
+conf/database.conf
+conf/mailer.conf
+conf/silhouette.conf
+conf/isidro.conf

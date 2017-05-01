@@ -1,12 +1,12 @@
-@(rid: Int, requestForm: Form[DataRequest])(implicit request: RequestHeader, user: User, messages: Messages)
+@(rid: Int, requestForm: Form[DataRequest])(implicit request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets, user: User)
 @import b3.vertical.fieldConstructor
-@import controllers.routes
+@import controllers.pages.routes
 @import models.DataRequest
 @import helper._
 
-@views.html.templates.logged(title = Messages("edit.request"), tab = "update") {
+@views.html.main(title = Messages("edit.request"), user = Some(user)) {
   <hr />
-  @b3.form(routes.Isidro.handleEditRequest(rid)) {
+  @b3.form(routes.ApplicationController.handleEditRequest(rid)) {
     @CSRF.formField
     <div class="container-fluid content">
       <div class="row">
