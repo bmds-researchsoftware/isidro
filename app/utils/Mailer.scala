@@ -4,6 +4,7 @@ import models.User
 import play.twirl.api.Html
 import play.api.i18n.Messages
 import views.html.mails
+import scala.language.implicitConversions
 import slick.driver.JdbcProfile
 
 object Mailer {
@@ -11,10 +12,12 @@ object Mailer {
   implicit def html2String(html: Html): String = html.toString
 
   def welcome(user: User, link: String)(implicit ms: MailService, m: Messages) {
-    ms.sendEmailAsync(user.email)(
+    ms.sendEmailAsync(user.email.head)(
       subject = Messages("mail.welcome.subject"),
-      bodyHtml = mails.welcome(user.firstName, link),
-      bodyText = mails.welcomeTxt(user.firstName, link)
+      bodyHtml = mails.welcome(
+        user.firstName.head,
+        link),
+      bodyText = mails.welcomeTxt(user.firstName.head, link)
     )
   }
 
@@ -26,7 +29,7 @@ object Mailer {
     )
   }
 
-  def sendDownloadEmail(email: String, link: String)(implicit ms: MailService, m: Messages)={
+  def sendDownloadEmail(email: String, link: String)(implicit ms: MailService, m: Messages) = {
     val mailTxt = mails.downloadLinkTxt(link)
     ms.sendEmailAsync(email)(
       subject = Messages("mail.download.subject"),
