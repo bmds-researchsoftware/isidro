@@ -4,7 +4,6 @@
 @import helper._
 
 @views.html.templates.logged(title = Messages("editAwaiting.title", r.id, r.title), tab = "update") {
-  @tags.alertFromRequest(request, "success")
   <hr />
   <div class="container-fluid content">
     <div class="row">
@@ -15,7 +14,7 @@
     </div>
     <form method="post">
       @CSRF.formField
-      @requestBox(r)
+      @views.html.tags.requestBox(r)
       <p>
         <div class="row">
           <div class="col-sm-12 submitrow">
@@ -26,4 +25,3 @@
     </form>
   </div>
 }
-

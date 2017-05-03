@@ -1,10 +1,12 @@
-@(state: Int, back: String)
+@(state: Int, back: Option[String])
 @import controllers.routes
 
 <div class="row">
   <div class="col-sm-12 submitrow">
     <input type="submit" /> <a href="@routes.Isidro.requests(false)" class="button">Cancel</a>
     <br /><br />
-    <a href="edit@state">&#11207; @back</a>
+    @back.map { bmsg =>
+      <a href="edit@state">&#11207; @bmsg</a>
+    }
   </div>
 </div>

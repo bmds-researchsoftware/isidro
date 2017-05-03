@@ -31,8 +31,8 @@ object UserServ extends UserTable with HasDatabaseConfig[JdbcProfile] {
   val services = Seq("A", "B")
   val users = TableQuery[Users]
   val testUsers = scala.collection.mutable.HashMap[Long, User](
-    1L -> User(1L, "john@dartmouth.edu", true, (new BCryptPasswordHasher()).hash("xyzzy123").password,
-      "John", "Higgins", "master")
+    1L -> User(1L, "test.user@example.com", true, (new BCryptPasswordHasher()).hash("xyzzy123").password,
+      "Test", "User", "master")
   )
 
   def findByEmail(email: String): Future[Option[User]] = {
@@ -52,4 +52,3 @@ object UserServ extends UserTable with HasDatabaseConfig[JdbcProfile] {
     finally db.close
   }
 }
-

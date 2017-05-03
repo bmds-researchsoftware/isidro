@@ -42,6 +42,6 @@ class ErrorHandler @Inject() (
 
   // 500 - internal server error
   override def onProdServerError(request: RequestHeader, exception: UsefulException) = Future.successful {
-    InternalServerError(views.html.errors.error(request, exception)(request2Messages(request)))
+    InternalServerError(views.html.errors.error(exception)(request2Messages(request)))
   }
 }

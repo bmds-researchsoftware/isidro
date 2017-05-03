@@ -27,7 +27,7 @@ case class UniqueFile(
   /**
    * Checks if this file is more than configured number of days old.
    *
-   * @param file UniqueFile for which the expiration must be checked.
+   * @param filesExpiration Age in days when file expires
    * @return if the file has expired.
    */
   def isFileExpired(filesExpiration: Int)={

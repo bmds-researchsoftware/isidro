@@ -2,8 +2,7 @@ package controllers
 
 import handlers.ErrorHandler
 import controllers.Assets.Asset
-import play.api.mvc.{ Controller, Action, AnyContent }
-import java.io.File
+import play.api.mvc.{ Action, AnyContent }
 
 class MyAssets @javax.inject.Inject() (val errorHandler: ErrorHandler) extends AssetsBuilder(errorHandler) {
   def public(path: String, file: Asset):Action[AnyContent] = versioned(path, file)

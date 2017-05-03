@@ -1,44 +1,30 @@
 package controllers
 
-import edu.dartmouth.geisel.isidro.checksum.ExcelChecksum
-import edu.dartmouth.geisel.isidro.encrypt.ExcelEncrypt
-import edu.dartmouth.geisel.isidro.read.CsvReader
-import edu.dartmouth.geisel.isidro.read.DataIntegrityMismatchException
-import edu.dartmouth.geisel.isidro.signature.ExcelSignature
-import edu.dartmouth.geisel.isidro.watermark.ExcelWatermark
-import edu.dartmouth.isidro.util.TextUtils
-import models.{DataRequest, RequestLogService, RequestRequirement, UniqueFileServ}
-import tables.{DataRequestTable, RequirementTable, RequestLogTable, RequestRequirementTable, UniqueFileTable}
-import utils.Constants
-import utils.MailService
-import utils.Mailer
-import utils.RandomUtils
-import utils.silhouette._
-import views.html.{ auth => viewsAuth }
-
-import java.io.BufferedOutputStream
 import java.io.File
-import java.io.FileOutputStream
-import java.net.MalformedURLException
-import java.net.URL
+import java.net.{URL, MalformedURLException}
 import java.nio.file.Paths
-import javax.inject.Inject
-import javax.mail.MessagingException
-import org.apache.poi.poifs.crypt.CipherAlgorithm
-import play.api.Logger
-import play.api.Play
-import play.api.Play.current
-import play.api.data.Form
-import play.api.data.Forms.{email, mapping, ignored, nonEmptyText, text}
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfig }
-import play.api.i18n.{ MessagesApi, Messages, Lang, I18nSupport }
-import play.api.libs.Files.TemporaryFile
-import play.api.mvc.Action
+
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.Future
 import scala.concurrent.duration.Duration
+
+import edu.dartmouth.geisel.isidro.read.CsvReader
+import edu.dartmouth.isidro.util.TextUtils
+import javax.inject.Inject
+import javax.mail.MessagingException
+import models.{DataRequest, RequestLogService, RequestRequirement}
+import play.api.{Play, Logger}
+import play.api.data.Form
+import play.api.data.Forms.{email, ignored, mapping, nonEmptyText, text}
+import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig}
+import play.api.i18n.{I18nSupport, Lang, Messages, MessagesApi}
+import play.api.libs.Files.TemporaryFile
+import play.api.mvc.Action
 import slick.driver.JdbcProfile
+import tables.{DataRequestTable, RequestLogTable, RequestRequirementTable, RequirementTable, UniqueFileTable}
+import utils.{Mailer, MailService, FileUtils, Constants}
+import utils.silhouette._
 
 trait Tables extends DataRequestTable with RequirementTable with RequestRequirementTable with UniqueFileTable with RequestLogTable
 
@@ -88,7 +74,7 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
    * @param showClosed False=>Show only closed requests.  True=>Show only open requests
    */
   def requests(showClosed: Boolean) = SecuredAction.async { implicit request =>
-    db.run(dataRequests.filter(if (showClosed) _.status === Constants.CLOSED else _.status =!= Constants.CLOSED).result).map(req =>
+    db.run(dataRequests.filter(if (showClosed) _.status === Constants.CLOSED else _.status =!= Constants.CLOSED).sortBy(_.id).result).map(req =>
       Ok(views.html.brokerRequests(req.toList, showClosed)))
   }
 
@@ -99,12 +85,32 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
    */
   def viewLog(rid: Int) = SecuredAction.async { implicit request =>
     val q = for {
-      log <- requestLogs if log.request === rid
-      u <- users if u.id === log.user
+      (log, u) <- requestLogs.filter(_.request === rid) joinLeft users on (_.user === _.id)
     } yield (log, u)
     db.run(q.result.zip(dataRequests.filter(_.id === rid).result)).map(logs => {
       Ok(views.html.request.viewLog(logs._2.head, logs._1.toList.sortBy(_._1.time.getTime)))
     })
+  }
+
+  /**
+    * Redirect to the edit page corresponding to the request's current state.
+    *
+    * @param rid: The request's id
+    * @param state: The request's current state
+    * @return Redirect response to the appropriate edit page, or requests list
+    */
+  private def redirectToCurrentState(req: DataRequest) = {
+    Redirect(
+      if (req.status == Constants.AWAITINGDOWNLOAD) {
+        routes.Isidro.editAwaitingDownload(req.id)
+      } else if (req.status == Constants.DOWNLOADED) {
+        routes.Isidro.editDownloaded(req.id)
+      } else if (req.status == Constants.CLOSED) {
+        routes.Isidro.viewLog(req.id)
+      } else {
+        routes.Isidro.requests(false)
+      }
+    ).flashing("info" -> Messages("request.updated", req.statusString))
   }
 
   /**
@@ -114,7 +120,11 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
    */
   def editRequest(rid: Int) = SecuredAction.async { implicit request =>
     db.run(dataRequests.filter(_.id === rid).result).map(req => {
-      Ok(views.html.request.editRequest(rid, newRequestForm.fill(req.head)))
+      if (req.head.status >= Constants.AWAITINGDOWNLOAD) {
+        redirectToCurrentState(req.head)
+      } else {
+        Ok(views.html.request.editRequest(rid, newRequestForm.fill(req.head)))
+      }
     })
   }
 
@@ -131,9 +141,13 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
     db.run(dataRequests.filter(_.id === rid).result.zip(requirements.sortBy(r => r.order).result.zip(q3.result))).map(req => {
       req._1.headOption match {
         case Some(theRequest) => {
-          Ok(views.html.request.editRequirements(theRequest, req._2._1.toList, req._2._2.toList))
+          if (theRequest.status >= Constants.AWAITINGDOWNLOAD) {
+            redirectToCurrentState(theRequest)
+          } else {
+            Ok(views.html.request.editRequirements(theRequest, req._2._1.toList, req._2._2.toList))
+          }
         }
-        case _ => Redirect(routes.Isidro.requests(false))
+        case _ => Redirect(routes.Isidro.requests(false)).flashing("error" -> Messages("request.not.found"))
       }
     })
   }
@@ -152,9 +166,13 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
     db.run(dataRequests.filter(_.id === rid).result.zip(q3.result)).map(req => {
       req._1.headOption match {
         case Some(theRequest) => {
-          Ok(views.html.request.trackRequirements(theRequest, req._2.toList))
+          if (theRequest.status >= Constants.AWAITINGDOWNLOAD) {
+            redirectToCurrentState(theRequest)
+          } else {
+            Ok(views.html.request.trackRequirements(theRequest, req._2.toList))
+          }
         }
-        case _ => Redirect(routes.Isidro.requests(false))
+        case _ => Redirect(routes.Isidro.requests(false)).flashing("error" -> Messages("request.not.found"))
       }
     })
   }
@@ -168,9 +186,13 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
     db.run(dataRequests.filter(_.id === rid).result).map(req => {
       req.headOption match {
         case Some(theRequest) => {
-          Ok(views.html.request.sendFile(theRequest))
+          if (theRequest.status >= Constants.AWAITINGDOWNLOAD) {
+            redirectToCurrentState(theRequest)
+          } else {
+            Ok(views.html.request.sendFile(theRequest))
+          }
         }
-        case _ => Redirect(routes.Isidro.requests(false))
+        case _ => Redirect(routes.Isidro.requests(false)).flashing("error" -> Messages("request.not.found"))
       }
     })
   }
@@ -184,9 +206,13 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
     db.run(dataRequests.filter(_.id === rid).result).map(req => {
       req.headOption match {
         case Some(theRequest) => {
-          Ok(views.html.request.editAwaiting(theRequest))
+          if (theRequest.status >= Constants.DOWNLOADED) {
+            redirectToCurrentState(theRequest)
+          } else {
+            Ok(views.html.request.editAwaiting(theRequest))
+          }
         }
-        case _ => Redirect(routes.Isidro.requests(false))
+        case _ => Redirect(routes.Isidro.requests(false)).flashing("error" -> Messages("request.not.found"))
       }
     })
   }
@@ -200,9 +226,13 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
     db.run(dataRequests.filter(_.id === rid).result).map(req => {
       req.headOption match {
         case Some(theRequest) => {
-          Ok(views.html.request.editDownloaded(theRequest))
+          if (theRequest.status >= Constants.CLOSED) {
+            redirectToCurrentState(theRequest)
+          } else {
+            Ok(views.html.request.editDownloaded(theRequest))
+          }
         }
-        case _ => Redirect(routes.Isidro.requests(false))
+        case _ => Redirect(routes.Isidro.requests(false)).flashing("error" -> Messages("request.not.found"))
       }
     })
   }
@@ -212,36 +242,37 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
    *
    * @param rid The request's id
    */
-  def handleProgress(rid: Int) = SecuredAction { implicit request =>
+  def handleProgress(rid: Int) = SecuredAction.async { implicit request =>
     val complete = request.body.asFormUrlEncoded.head.map(_._1).filter(_.startsWith("rq")).map(_.substring(2).toInt).toList
 
     // Update db for all incomplete requirements for this request
     val qIncomplete = for {
       c <- requestRequirements if c.request === rid if !c.requirement.inSetBind(complete)
     } yield c.completed
-    db.run(qIncomplete.update(false)).map(rows => {
-      // Update request state based on whether any requirements are left incomplete
-      val qStatus = for {
-        rr <- requestRequirements if rr.request === rid
-        requirement <- requirements if requirement.id === rr.requirement
-      } yield (requirement.title, rr.completed)
-
-      db.run(qStatus.result).map(rrs => {
-        val rrList = rrs.toList
-        val complete = rrList.filter(_._2).map(_._1).mkString("\n")
-        val incomplete = rrList.filter(!_._2).map(_._1).mkString("\n")
-        RequestLogService.log(rid, request.identity.id, s"Requirement progress updated\nComplete:\n$complete\nIncomplete:\n$incomplete")
-      })
-      db.run(dataRequests.filter(_.id === rid).map(x => (x.status)).update(if (rows>0) Constants.AWAITINGREQUIREMENTS else Constants.READYTOSEND))
-    })
+    Await.result(db.run(qIncomplete.update(false)), Duration.Inf)
 
     // Update db for all complete requirements for this request
     val qComplete = for {
       c <- requestRequirements if c.request === rid if c.requirement inSetBind complete
     } yield c.completed
-    db.run(qComplete.update(true))
+    Await.result(db.run(qComplete.update(true)), Duration.Inf)
 
-    Redirect(routes.Isidro.requests(false))
+    // Log requirement progress
+    val qStatus = for {
+      rr <- requestRequirements if rr.request === rid
+      requirement <- requirements if requirement.id === rr.requirement
+    } yield (requirement.title, rr.completed)
+
+    val rrs = Await.result(db.run(qStatus.result), Duration.Inf)
+    val rrList = rrs.toList
+    val completeList = rrList.filter(_._2).map(_._1).mkString("\n")
+    val incompleteList = rrList.filter(!_._2).map(_._1).mkString("\n")
+    RequestLogService.log(rid, request.identity.id, Messages("request.progress", completeList, incompleteList))
+
+    // Update request state based on whether any requirements are left incomplete
+    db.run(dataRequests.filter(_.id === rid).map(x => (x.status))
+      .update(if (incompleteList.isEmpty) Constants.READYTOSEND else Constants.AWAITINGREQUIREMENTS))
+      .map(_ => Redirect(routes.Isidro.requests(false)))
   }
 
   /**
@@ -253,7 +284,14 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
     val reqs = request.body.asFormUrlEncoded.head.map(_._1).filter(_.startsWith("rq")).map(_.substring(2).toInt)
     val rrs = reqs.map(new RequestRequirement(rid, _))
     Await.result(db.run(requestRequirements.filter(_.request === rid).delete), Duration.Inf)
-    RequestLogService.log(rid, request.identity.id, "Requirements edited.")
+
+    val qRequirements = for {
+      r <- requirements if r.id inSetBind(reqs)
+    } yield (r.title)
+
+    db.run(qRequirements.result).map (reqText =>
+      RequestLogService.log(rid, request.identity.id, Messages("request.requirements.edited", reqText.mkString("\n")))
+    )
     db.run(dataRequests.filter(_.id === rid).map(x => (x.status)).update(Constants.AWAITINGREQUIREMENTS))
     db.run(requestRequirements ++= rrs).map(_ => Redirect(routes.Isidro.requests(false)))
   }
@@ -281,7 +319,7 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
           })
         } else {
           val fullReq = req.copy(id = rid, userId = request.identity.id, status = Constants.NEWREQUEST)
-          RequestLogService.log(rid, request.identity.id, s"Request edited:\n${fullReq.logString}")
+          RequestLogService.log(rid, request.identity.id, Messages("request.edited", fullReq.logString))
           db.run(dataRequests.filter(_.id === rid).update(fullReq)).map(_ => Redirect(routes.Isidro.requests(false)))
         }
       }
@@ -295,7 +333,7 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
    */
   def handleWithdrawFile(rid: Int) = SecuredAction.async { implicit request =>
     val fileq = for {
-      uf <- uniqueFiles if uf.requestId === rid
+      uf <- uniqueFiles if (uf.requestId === rid && !uf.isDeleted)
       r <- dataRequests if uf.requestId === r.id
     } yield (uf, r)
     db.run(fileq.result).map(res => res.headOption match {
@@ -303,12 +341,12 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
         uf.delete
         db.run(uniqueFiles.filter(_.requestId === rid).map(x => (x.isDeleted)).update(true))
         db.run(dataRequests.filter(_.id === rid).map(x => (x.status)).update(Constants.READYTOSEND))
-        RequestLogService.log(rid, request.identity.id, s"Data file ${uf.fileLocation} withdrawn and deleted.")
+        RequestLogService.log(rid, request.identity.id, Messages("request.withdrawn", uf.fileLocation))
         Redirect(routes.Isidro.requests(false))
       }
       case _ => {
-        Logger.error(s"no file for request: $rid")
-        Redirect(routes.Isidro.requests(false))
+        Logger.error(Messages("request.no.file", rid))
+        Redirect(routes.Isidro.requests(false)).flashing(("error" -> Messages("request.no.file", rid)))
       }
     })
   }
@@ -319,7 +357,7 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
    * @param rid The request's id
    */
   def handleClose(rid: Int) = SecuredAction.async { implicit request =>
-    RequestLogService.log(rid, request.identity.id, "Close request")
+    RequestLogService.log(rid, request.identity.id, Messages("request.close"))
     db.run(dataRequests.filter(_.id === rid).map(x => (x.status)).update(Constants.CLOSED)).map(_ => Redirect(routes.Isidro.requests(false)))
   }
 
@@ -335,15 +373,15 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
     } yield (uf, r)
     db.run(fileq.result).map(res => res.headOption match {
       case Some((uf, req)) => {
-        val isFileExpired = uf.isFileExpired(Constants.fileExpiration)
+        val isFileExpired = uf.isFileExpired(Constants.getInt("fileExpiration"))
         val filePath = new File(uf.fileLocation)
         val fileName = uf.fileName
 
-        if (uf.isFileExpired(Constants.fileExpiration)) {
-          Logger.debug(s"""Data file "${uf.fileLocation}" expired and deleted.""")
+        if (uf.isFileExpired(Constants.getInt("fileExpiration"))) {
+          Logger.debug(Messages("download.deleted", uf.fileLocation))
           Redirect(routes.Isidro.index)
         } else if (!filePath.exists || uf.isDeleted) {
-          Logger.debug(s"""Data file "${uf.fileLocation}" does not exist on disk.""")
+          Logger.debug(Messages("download.missing", uf.fileLocation))
           Redirect(routes.Isidro.index)
         } else {
           val password = uf.password
@@ -351,14 +389,15 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
           if (password.isDefined) {
             Mailer.sendPasswordEmail(req.email, password.get)
           }
+          RequestLogService.log(req.id, 0L, Messages("download.downloaded"))
           db.run(dataRequests.filter(_.id === req.id).map(x => (x.status)).update(Constants.DOWNLOADED))
-          RequestLogService.log(req.id, 1, "File downloaded and deleted") // TODO No user
+          db.run(uniqueFiles.filter(_.uniqueName === uniqueName).map(_.isDeleted).update(true))
           Ok.sendFile(fileToServe.file, onClose = () => { fileToServe.clean })
         }
       }
       case _ => {
         Logger.error(s"no file: $uniqueName")
-        Redirect(routes.Isidro.index)
+        Redirect(routes.Isidro.index).flashing(("error" -> Messages("download.expired")))
       }
     })
   }
@@ -376,98 +415,17 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
 
     db.run(q.result).map { res => res.headOption match {
       case Some((uf, r)) => {
-        Ok(views.html.downloads.download(uid))
+        if (uf.isDeleted || uf.isFileExpired(Constants.getInt("fileExpiration"))) {
+          Ok(views.html.downloads.expired())
+        } else {
+          Ok(views.html.downloads.download(uid))
+        }
       }
       case _ => {
-        Logger.error(s"Data file not found: $uid")
+        Logger.error(Messages("download.missing", uid))
         Redirect(routes.Isidro.index)
       }
     }}
-  }
-
-  /**
-   * Create an xlsx file from csv data.
-   *
-   * @param xlsxPath    Path to xlsx file to be created
-   * @param csvContents Data read from csv file (2D string array)
-   * @param watermark   True if the xlsx file should be watermarked.
-   */
-  type CsvData = java.util.List[java.util.List[String]]
-  private def createXlsx(xlsxPath: String, csvContents: CsvData, watermark: Boolean):String = {
-    try {
-      val workbook = CsvReader.getExcelWorkbook(Constants.isidroWorksheetName, csvContents)
-      val os = new FileOutputStream(xlsxPath)
-      workbook.write(os)
-      if (watermark) {
-        ExcelWatermark.watermark(workbook, Constants.isidroWorksheetName, new File(Constants.watermarkImagePath))
-        s"Watermark: ${Constants.watermarkImagePath}\n"
-      } else {
-        ""
-      }
-    } catch {
-      case _:Throwable => "Watermark error"
-    }
-  }
-
-
-  /**
-   * Encrypt xlsx file with a random password
-   *
-   * @param xlsxPath Path to xlsx file to be encrypted
-   * @return The password used for encryption
-   */
-  private def encryptXlsx(xlsxPath: String) = {
-    val pw = RandomUtils.generateRandomNumberString(Constants.RANDOMBITS, Constants.RADIX);
-    ExcelEncrypt.encrypt(xlsxPath, pw, CipherAlgorithm.valueOf(Constants.encryptionAlgorithm));
-    pw
-  }
-
-  /**
-   * Build xlsx file from csv data, with the suppled options.
-   *
-   * @param rid Id of request for this file
-   * @param xlsxPath Path to xlsx file to be created
-   * @param csvContents Data read from csv file (2D string array)
-   * @param logEntry StringBuilder to append with request log information
-   * @param fingerprint Enable fingerprint
-   * @param watermark Enable watermark
-   * @param signature Enable signature
-   * @param encrypt Enable encrytion
-   */
-  private def buildFile(
-    rid: Int,
-    xlsxPath: String,
-    csvContents: CsvData,
-    logEntry: StringBuilder,
-    fingerprint: Boolean,
-    watermark: Boolean,
-    signature: Boolean,
-    encrypt: Boolean) = {
-
-    // CAUTION: fingerprint, watermark, signature, and encryption
-    // order of operation important.
-    val checksum = ExcelChecksum.checksum(csvContents)
-
-    if (fingerprint) logEntry.append(s"Fingerprint: $checksum\n")
-
-    logEntry.append(createXlsx(xlsxPath, csvContents, watermark))
-
-    if (signature) {
-      ExcelSignature.sign(Constants.inputSignature, Constants.inputPassword, xlsxPath);
-      logEntry.append("Signed\n");
-    }
-
-    val password:Option[String] = if (encrypt) {
-      logEntry.append("Encrypted\n");
-      Some(encryptXlsx(xlsxPath))
-    } else {
-      None
-    }
-
-    val uniqueFile = UniqueFileServ.generateUniqueFile(xlsxPath, checksum, Constants.storeDir, rid, password)
-    new File(xlsxPath).delete
-
-    uniqueFile
   }
 
   /**
@@ -481,26 +439,25 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
     val params = request.body.asFormUrlEncoded
 
     request.body.file("dataFile").map { dataFile =>
-      val filesPath = Paths.get(Constants.outputDir, rid.toString).toString
-      val csvPath = Paths.get(filesPath, Constants.outputCsv).toString
+      val filesPath = Paths.get(Constants.getString("outputDir"), rid.toString).toString
+      val csvPath = Paths.get(filesPath, Constants.getString("outputCsv")).toString
       val csvFile = new File(csvPath)
-      val xlsxPath = Paths.get(filesPath, Constants.outputXlsx).toString
+      val xlsxPath = Paths.get(filesPath, Constants.getString("outputXlsx")).toString
       val filesDir = new File(filesPath)
-      filesDir.mkdirs
-
+      filesDir.mkdirs()
       dataFile.ref.moveTo(csvFile)
 
       val csvContents = CsvReader.read(csvPath)
       csvFile.delete()
 
 
-      val uniqueFile = buildFile(rid, xlsxPath, csvContents, logEntry,
+      val uniqueFile = FileUtils.buildFile(rid, xlsxPath, csvContents, logEntry,
         params.contains("fingerprint"),
         params.contains("watermark"),
         params.contains("signature"),
         params.contains("encrypt"))
 
-      filesDir.delete
+      filesDir.delete()
 
       db.run(uniqueFiles += uniqueFile)
 
@@ -516,11 +473,11 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
       sendDownloadEmail(rid, uniqueFile.uniqueName, request.identity.id)
       RequestLogService.log(rid, request.identity.id, s"Send download link:\n${logEntry.toString().trim()}")
       db.run(dataRequests.filter(_.id === rid).map(x => (x.status)).update(Constants.AWAITINGDOWNLOAD))
+      Redirect(routes.Isidro.requests(false)).flashing("success" -> Messages("download.mailed"))
     }.getOrElse {
-      Redirect(routes.Isidro.sendFile(rid)).flashing("error" -> "Missing file")
+      Redirect(routes.Isidro.sendFile(rid)).flashing("error" -> Messages("error.chooseFile"))
     }
 
-    Redirect(routes.Isidro.requests(false))
   }
 
 
@@ -542,7 +499,7 @@ class Isidro @Inject() (val env: AuthenticationEnvironment, val messagesApi: Mes
     db.run(q.result).map(dr => {
       dr.headOption match {
         case Some(theRequest) => {
-          val url = new URL(TextUtils.formatText("%s/downloads/%s", Constants.serverName, uniqueName))
+          val url = new URL(TextUtils.formatText("%s/downloads/%s", Constants.getString("serverName"), uniqueName))
           val mailTxt = Mailer.sendDownloadEmail(theRequest.email, url.toString)
           RequestLogService.log(rid, uid, s"Mail sent to ${theRequest.email}:\n$mailTxt")
         }

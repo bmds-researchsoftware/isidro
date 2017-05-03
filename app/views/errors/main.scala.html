@@ -1,4 +1,4 @@
-@(title: String, navbarContent: Html = Html(""), styles: Html = Html(""), scripts: Html = Html(""), modals: Html = Html(""), withTitle: Boolean = false)(content: Html)(implicit messages: Messages, request: RequestHeader)
+@(title: String, navbarContent: Html = Html(""), styles: Html = Html(""), scripts: Html = Html(""), modals: Html = Html(""), withTitle: Boolean = false)(content: Html)(implicit messages: Messages)
 
 @import controllers.routes
 @import utils.Constants.THISYEAR
@@ -34,18 +34,18 @@
                     @navbarContent
                 </div>
             </div>
-        </div>
+          </div>
         @if(withTitle) {
           <div style="background-color: #316128; text-align: center">
             <img style="height: 140px" src="@routes.Assets.at("images/fulllogo.png")">
           </div>
           <hr />
         }
+        
         <div class="container">
-          @tags.alertsFromRequest(request)
-          @content
-        </div>
-        <div class="footer text-center"><small><a href="@messages("copyright.url")">@Messages("copyright")</a> @messages("copyright.msg", THISYEAR.toString)</small></div>
+          <div class="starter-template row">
+            @content
+            <div class="footer text-center"><small><a href="@messages("copyright.url")">@Messages("copyright")</a> @messages("copyright.msg", THISYEAR.toString)</small></div>
         </div>
         @modals
         @scripts

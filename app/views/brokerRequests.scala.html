@@ -4,8 +4,6 @@
 
 @views.html.templates.logged(title = "Incoming Requests", tab = "brokerrequests") {
 	
-  @tags.alertFromRequest(request, "success")
-	
   <h1>@{if(closed)Messages("brokerclosedrequests.title") else Messages("brokerrequests.title")}</h1>
   @if(closed) {
     <a href="/requests">View open requests</a>

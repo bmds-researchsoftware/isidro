@@ -8,7 +8,6 @@ import com.mohiva.play.silhouette.api.{ LoginInfo, SignUpEvent, LoginEvent, Logo
 import com.mohiva.play.silhouette.api.util.Credentials
 import com.mohiva.play.silhouette.api.exceptions.ProviderException
 import com.mohiva.play.silhouette.impl.exceptions.{ IdentityNotFoundException, InvalidPasswordException }
-import play.api._
 import play.api.mvc._
 import play.api.Play.current
 import play.api.data.Form
@@ -27,7 +26,7 @@ class Auth @Inject() (val env: AuthenticationEnvironment, val messagesApi: Messa
   // UTILITIES
 
   implicit val ms = mailService
-  val passwordValidation = nonEmptyText(minLength = Constants.minPasswordLength)
+  val passwordValidation = nonEmptyText(minLength = Constants.getInt("minPasswordLength"))
   def notFoundDefault(implicit request: RequestHeader) = Future.successful(NotFound(views.html.errors.notFound(request)))
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -56,7 +55,7 @@ class Auth @Inject() (val env: AuthenticationEnvironment, val messagesApi: Messa
       formWithErrors => Future.successful(BadRequest(viewsAuth.signIn(formWithErrors))),
       formData => {
         val (identifier, password) = formData
-        env.credentialsProvider.authenticate(Credentials(identifier, password)).flatMap { loginInfo =>
+        env.credentialsProvider.authenticate(Credentials(identifier.toLowerCase, password)).flatMap { loginInfo =>
           env.identityService.retrieve(loginInfo).flatMap {
             case Some(user) => for {
               authenticator <- env.authenticatorService.create(loginInfo).map(env.authenticatorWithRememberMe(_, false))
