@@ -25,7 +25,7 @@ class IsidroSpec extends FlatSpec with Matchers with HtmlUnit {
 
   "Signing in with a good login" should "go to home page" in {
     go to (host + "signIn")
-    emailField("email").value = "rodney.jacobson@dartmouth.edu"
+    emailField("email").value = "test.user@example.com"
     pwdField("password").value = "xyzzy123"
     submit()
     pageTitle should be("ISIDRO - Home")
