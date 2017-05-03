@@ -60,6 +60,10 @@ modules/*/modules
 *.tar
 *.zip
 
+# Configuration files
+#####################
+*.conf
+
 # Logs and databases #
 ######################
 *.log
@@ -84,9 +88,3 @@ Thumbs.db
 # IDEA
 /.idea
 /.idea_modules
-
-# Configuration files
-conf/database.conf
-conf/mailer.conf
-conf/silhouette.conf
-conf/isidro.conf
