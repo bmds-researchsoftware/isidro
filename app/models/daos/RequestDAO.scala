@@ -49,7 +49,7 @@ class RequestDAO @Inject() (protected val dbConfigProvider: DatabaseConfigProvid
 
   def insert(req: DataRequest): Future[Int] = {
     val insertQ = requests returning requests.map(_.id)
-    return db.run(insertQ += req)
+    db.run(insertQ += req)
   }
 
   def update(rid: Int, req: DataRequest) = {
@@ -113,7 +113,6 @@ class RequestDAO @Inject() (protected val dbConfigProvider: DatabaseConfigProvid
       uf <- uniqueFiles if (uf.requestId === rid && !uf.isDeleted)
       r <- requests if uf.requestId === r.id
     } yield (uf, r)
-    println(s"${fileq.result.statements}")
     db.run(fileq.result)
   }
 

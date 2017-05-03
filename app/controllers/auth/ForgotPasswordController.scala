@@ -52,7 +52,6 @@ class ForgotPasswordController @Inject() (
    * @return The result to display.
    */
   def submit: Action[AnyContent] = silhouette.UnsecuredAction.async { implicit request =>
-    println("fp1")
     ForgotPasswordForm.form.bindFromRequest.fold(
       form => Future.successful(BadRequest(views.html.auth.forgotPassword(form))),
       email => {
@@ -73,7 +72,6 @@ class ForgotPasswordController @Inject() (
               result
             }
           case None => {
-            println("no user")
             Future.successful(result)
           }
         }

@@ -68,10 +68,7 @@ class PasswordInfoDAO @Inject() (
         dbLoginInfo =>
           {
             val dbPasswordInfo = DbPasswordInfo(authInfo.hasher, authInfo.password, authInfo.salt, dbLoginInfo.id.get)
-            println(s"li: $loginInfo -- pi: $dbPasswordInfo")
             val rez = Await.result(db.run(userDAO.loginInfoQuery(loginInfo).result.transactionally), Duration.Inf)
-            println(s"rez: $rez")
-            //db.run(passwordInfoQuery(loginInfo).update(dbPasswordInfo).transactionally)
             db.run(passwordInfoUpdate(rez.head).update(dbPasswordInfo).transactionally)
           }
       }

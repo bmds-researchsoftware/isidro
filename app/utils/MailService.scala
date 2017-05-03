@@ -25,11 +25,9 @@ class MailServiceImpl @Inject() (mailerClient: MailerClient, val conf: Configura
     //Akka.system.scheduler.scheduleOnce(100 milliseconds) {
     //sendEmail(recipients: _*)(subject, bodyHtml, bodyText)
     //}
-    println(s"send email async ${recipients.head}")
     sendEmail(recipients.head)(subject, bodyHtml, bodyText)
   }
   def sendEmail(recipients: String*)(subject: String, bodyHtml: String, bodyText: String): Unit = {
-    println(s"send email $recipients\n\nbodyhtml\n$bodyHtml\n\nbodytext:\n$bodyText")
     mailerClient.send(Email(subject, from, recipients, Some(bodyText), Some(bodyHtml)))
   }
 
