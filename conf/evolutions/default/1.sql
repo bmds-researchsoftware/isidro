@@ -66,14 +66,7 @@ CREATE TABLE "unique_file" (
 
 
 INSERT INTO "isidro_user" VALUES
-    (1,'','John','Higgins','john.higgins@dartmouth.edu',TRUE,'$2a$10$Mtcq4iFwL6tRhekgpH3jxeckRUqu8tKcM0JpmdsUz7srLtAbvDW06','master'),
-    (2,'','Rodney','Jacobson','rodney.jacobson@dartmouth.edu',TRUE,'$2a$10$Mtcq4iFwL6tRhekgpH3jxeckRUqu8tKcM0JpmdsUz7srLtAbvDW06','master'),
-    (3,'','Patrick','Eads','patrick.eads@dartmouth.edu',TRUE,'$2a$10$Mtcq4iFwL6tRhekgpH3jxeckRUqu8tKcM0JpmdsUz7srLtAbvDW06','master'),
-    (4,'','Steven','Andrews','steven.b.andrews@dartmouth.edu',TRUE,'$2a$10$Mtcq4iFwL6tRhekgpH3jxeckRUqu8tKcM0JpmdsUz7srLtAbvDW06','master'),
-    (5,'','Rebecca','Faill','rebecca.faill@dartmouth.edu',TRUE,'$2a$10$Mtcq4iFwL6tRhekgpH3jxeckRUqu8tKcM0JpmdsUz7srLtAbvDW06','master'),
-    (6,'','Craig','Ganoe','craig.h.ganoe@dartmouth.edu',TRUE,'$2a$10$Mtcq4iFwL6tRhekgpH3jxeckRUqu8tKcM0JpmdsUz7srLtAbvDW06','master'),
-    (7,'','Sukie','Punjasthitkul','sukdith.punjasthitkul@dartmouth.edu',TRUE,'$2a$10$Mtcq4iFwL6tRhekgpH3jxeckRUqu8tKcM0JpmdsUz7srLtAbvDW06','master'),
-    (8,'','Scottie','Eliassen','m.scottie.eliassen@dartmouth.edu',TRUE,'$2a$10$Mtcq4iFwL6tRhekgpH3jxeckRUqu8tKcM0JpmdsUz7srLtAbvDW06','master');
+    (1,'','Test','User','test.user@example.com',TRUE,'$2a$10$Mtcq4iFwL6tRhekgpH3jxeckRUqu8tKcM0JpmdsUz7srLtAbvDW06','master');
 
 DROP TABLE IF EXISTS "request_log";
 CREATE TABLE "request_log" (

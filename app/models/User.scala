@@ -31,22 +31,8 @@ object UserServ extends UserTable with HasDatabaseConfig[JdbcProfile] {
   val services = Seq("A", "B")
   val users = TableQuery[Users]
   val testUsers = scala.collection.mutable.HashMap[Long, User](
-    4L -> User(4L, "steven.b.andrews@dartmouth.edu", true, (new BCryptPasswordHasher()).hash("xyzzy123").password,
-      "Steven", "Andrews", "master"),
-    3L -> User(3L, "patrick.eads@dartmouth.edu", true, (new BCryptPasswordHasher()).hash("xyzzy123").password,
-      "Patrick", "Eads", "master"),
-    8L -> User(8L, "m.scottie.eliassen@dartmouth.edu", true, (new BCryptPasswordHasher()).hash("xyzzy123").password,
-      "Scottie", "Eliassen", "master"),
-    5L -> User(5L, "rebecca.faill@dartmouth.edu", true, (new BCryptPasswordHasher()).hash("xyzzy123").password,
-      "Rebecca", "Faill", "master"),
-    6L -> User(6L, "craig.h.ganoe@dartmouth.edu", true, (new BCryptPasswordHasher()).hash("xyzzy123").password,
-      "Craig", "Ganoe", "master"),
-    1L -> User(1L, "john.higgins@dartmouth.edu", true, (new BCryptPasswordHasher()).hash("xyzzy123").password,
-      "John", "Higgins", "master"),
-    2L -> User(2L, "rodney.jacobson@dartmouth.edu", true, (new BCryptPasswordHasher()).hash("xyzzy123").password,
-      "Rodney", "Jacobson", "master"),
-    7L -> User(7L, "sukdith.punjasthitkul@dartmouth.edu", true, (new BCryptPasswordHasher()).hash("xyzzy123").password,
-      "Sukie", "Punjasthitkul", "master")
+    1L -> User(1L, "test.user@example.com", true, (new BCryptPasswordHasher()).hash("xyzzy123").password,
+      "Test", "User", "master")
   )
 
   def findByEmail(email: String): Future[Option[User]] = {
