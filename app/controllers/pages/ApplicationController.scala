@@ -91,11 +91,8 @@ class ApplicationController @Inject() (
    * @param showClosed False=>Show only closed requests.  True=>Show only open requests
    */
   def requests(showClosed: Boolean) = silhouette.SecuredAction.async { implicit request =>
-    /*db.run(dataRequests.filter(if (showClosed) _.status === Constants.CLOSED else _.status =!= Constants.CLOSED).sortBy(_.id).result).map(req =>
-     Ok(views.html.brokerRequests(req.toList, showClosed))) */
     requestService.retrieve(showClosed).map(req =>
       Ok(views.html.brokerRequests(request.identity, req.toList, showClosed)))
-    //Future.successful(Redirect(pages.routes.ApplicationController.index()))
   }
 
   /**
@@ -141,18 +138,20 @@ class ApplicationController @Inject() (
    * @param rid The request's id
    */
   def editRequirements(rid: Int) = silhouette.SecuredAction.async { implicit request =>
-    requestService.getRequirements(rid).map(req => {
-      req._1.headOption match {
-        case Some(theRequest) => {
-          if (theRequest.status >= constants.AWAITINGDOWNLOAD) {
-            redirectToCurrentState(theRequest)
-          } else {
-            Ok(views.html.request.editRequirements(request.identity, theRequest, req._2._1.toList, req._2._2.toList))
+    requestService.getRequirements(rid).map {
+      case (req, (requirements, requestRequirements)) => {
+        req.headOption match {
+          case Some(theRequest) => {
+            if (theRequest.status >= constants.AWAITINGDOWNLOAD) {
+              redirectToCurrentState(theRequest)
+            } else {
+              Ok(views.html.request.editRequirements(request.identity, theRequest, requirements, requestRequirements))
+            }
           }
+          case _ => Redirect(pages.routes.ApplicationController.requests(false)).flashing("error" -> messagesApi("request.not.found"))
         }
-        case _ => Redirect(pages.routes.ApplicationController.requests(false)).flashing("error" -> messagesApi("request.not.found"))
       }
-    })
+    }
   }
 
   /**
@@ -161,18 +160,20 @@ class ApplicationController @Inject() (
    * @param rid The request's id
    */
   def editProgress(rid: Int) = silhouette.SecuredAction.async { implicit request =>
-    requestService.getRequirementProgress(rid).map(req => {
-      req._1.headOption match {
-        case Some(theRequest) => {
-          if (theRequest.status >= constants.AWAITINGDOWNLOAD) {
-            redirectToCurrentState(theRequest)
-          } else {
-            Ok(views.html.request.trackRequirements(request.identity, theRequest, req._2.toList))
+    requestService.getRequirementProgress(rid).map {
+      case (req, requestRequirements) => {
+        req.headOption match {
+          case Some(theRequest) => {
+            if (theRequest.status >= constants.AWAITINGDOWNLOAD) {
+              redirectToCurrentState(theRequest)
+            } else {
+              Ok(views.html.request.trackRequirements(request.identity, theRequest, requestRequirements))
+            }
           }
+          case _ => Redirect(pages.routes.ApplicationController.requests(false)).flashing("error" -> messagesApi("request.not.found"))
         }
-        case _ => Redirect(pages.routes.ApplicationController.requests(false)).flashing("error" -> messagesApi("request.not.found"))
       }
-    })
+    }
   }
 
   /**
@@ -252,10 +253,10 @@ class ApplicationController @Inject() (
 
         if (uf.isFileExpired(constants.getInt("fileExpiration"))) {
           Logger.debug(messagesApi("download.deleted", uf.fileLocation))
-          Redirect(pages.routes.ApplicationController.index)
+          Redirect(pages.routes.ApplicationController.index).flashing(("error" -> messagesApi("download.expired")))
         } else if (!filePath.exists || uf.isDeleted) {
           Logger.debug(messagesApi("download.missing", uf.fileLocation))
-          Redirect(pages.routes.ApplicationController.index)
+          Redirect(pages.routes.ApplicationController.index).flashing(("error" -> messagesApi("download.expired")))
         } else {
           val password = uf.password
           val fileToServe = TemporaryFile(filePath)
@@ -302,13 +303,14 @@ class ApplicationController @Inject() (
    * @param rid The request's id
    */
   def viewLog(rid: Int) = silhouette.SecuredAction.async { implicit request =>
-    requestService.getLog(rid).map(lg => {
-      val (user, logs) = lg
-      Ok(views.html.request.viewLog(
-        request.identity,
-        logs.head,
-        user.toList.sortBy(_._1.time.getTime)))
-    })
+    requestService.getLog(rid).map {
+      case (lg, req) => {
+        Ok(views.html.request.viewLog(
+          request.identity,
+          req.head,
+          lg))
+      }
+    }
   }
 
   /**
@@ -335,12 +337,7 @@ class ApplicationController @Inject() (
               fullReq.logString)
             Redirect(pages.routes.ApplicationController.requests(false))
           })
-          // val insertQ = dataRequests returning dataRequests.map(_.id)
-          // db.run(insertQ += fullReq).map(newId => {
-          // Redirect(pages.routes.ApplicationController.requests(false))
-          // })
         } else {
-          // val fullReq = req.copy(id = rid, userId = request.identity.id, status = Constants.NEWREQUEST)
           val fullReq = req.copy(id = rid, userId = 1, status = constants.NEWREQUEST)
           requestService.log(rid, request.identity.userID.toString, messagesApi("request.edited", fullReq.logString))
           requestService.update(rid, fullReq).map(_ => Redirect(pages.routes.ApplicationController.requests(false)))
@@ -358,15 +355,12 @@ class ApplicationController @Inject() (
     val reqs = request.body.asFormUrlEncoded.head.map(_._1).filter(_.startsWith("rq")).map(_.substring(2).toInt)
     val rrs = reqs.map(new RequestRequirement(rid, _))
     requestService.deleteRequirements(rid)
-    //Await.result(db.run(requestRequirements.filter(_.request === rid).delete), Duration.Inf)
 
     requestService.getRequirementTitles(reqs).map(reqText =>
       requestService.log(rid, request.identity.userID.toString, messagesApi("request.requirements.edited", reqText.mkString("\n")))
     )
     requestService.setState(rid, constants.AWAITINGREQUIREMENTS)
-    //db.run(dataRequests.filter(_.id === rid).map(x => (x.status)).update(Constants.AWAITINGREQUIREMENTS))
     requestService.addRequirements(rrs).map(_ => Redirect(pages.routes.ApplicationController.requests(false)))
-    //db.run(requestRequirements ++= rrs).map(_ => Redirect(pages.routes.ApplicationController.requests(false)))
   }
 
   /**
@@ -381,15 +375,16 @@ class ApplicationController @Inject() (
     requestService.updateProgress(rid, complete)
 
     // Log requirement progress
-    requestService.getRequirementProgress(rid).map(req => {
-      val prog = req._2.toList
-      val completeList = prog.filter(_._2).map(_._3).mkString("\n")
-      val incompleteList = prog.filter(!_._2).map(_._3).mkString("\n")
-      // Update request state based on whether any requirements are left incomplete
-      requestService.setState(rid, if (incompleteList.isEmpty) constants.READYTOSEND else constants.AWAITINGREQUIREMENTS)
-      requestService.log(rid, request.identity.userID.toString, messagesApi("request.progress", completeList, incompleteList))
-      Redirect(pages.routes.ApplicationController.requests(false))
-    })
+    requestService.getRequirementProgress(rid).map {
+      case (_, prog) => {
+        val completeList = prog.filter(_._2).map(_._3).mkString("\n")
+        val incompleteList = prog.filter(!_._2).map(_._3).mkString("\n")
+        // Update request state based on whether any requirements are left incomplete
+        requestService.setState(rid, if (incompleteList.isEmpty) constants.READYTOSEND else constants.AWAITINGREQUIREMENTS)
+        requestService.log(rid, request.identity.userID.toString, messagesApi("request.progress", completeList, incompleteList))
+        Redirect(pages.routes.ApplicationController.requests(false))
+      }
+    }
 
   }
 
@@ -404,40 +399,44 @@ class ApplicationController @Inject() (
     val params = request.body.asFormUrlEncoded
 
     request.body.file("dataFile").map { dataFile =>
-      val filesPath = Paths.get(constants.getString("outputDir"), rid.toString).toString
-      val csvPath = Paths.get(filesPath, constants.getString("outputCsv")).toString
-      val csvFile = new File(csvPath)
-      val xlsxPath = Paths.get(filesPath, constants.getString("outputXlsx")).toString
-      val filesDir = new File(filesPath)
-      filesDir.mkdirs()
-      dataFile.ref.moveTo(csvFile)
+      try {
+        val filesPath = Paths.get(constants.getString("outputDir"), rid.toString).toString
+        val csvPath = Paths.get(filesPath, constants.getString("outputCsv")).toString
+        val csvFile = new File(csvPath)
+        val xlsxPath = Paths.get(filesPath, constants.getString("outputXlsx")).toString
+        val filesDir = new File(filesPath)
+        filesDir.mkdirs()
+        dataFile.ref.moveTo(csvFile)
 
-      val csvContents = CsvReader.read(csvPath)
-      csvFile.delete()
+        val csvContents = CsvReader.read(csvPath)
+        csvFile.delete()
 
-      val uniqueFile = fileUtils.buildFile(rid, xlsxPath, csvContents, logEntry,
-        params.contains("fingerprint"),
-        params.contains("watermark"),
-        params.contains("signature"),
-        params.contains("encrypt"))
+        val uniqueFile = fileUtils.buildFile(rid, xlsxPath, csvContents, logEntry,
+          params.contains("fingerprint"),
+          params.contains("watermark"),
+          params.contains("signature"),
+          params.contains("encrypt"))
 
-      filesDir.delete()
+        filesDir.delete()
 
-      requestService.insert(uniqueFile)
+        requestService.insert(uniqueFile)
 
-      logEntry.append(s"File: ${uniqueFile.fileLocation}\n")
-      if (params.contains("notes")) {
-        logEntry.append(s"---Notes---\n${params("notes").head}\n")
+        logEntry.append(s"File: ${uniqueFile.fileLocation}\n")
+        if (params.contains("notes")) {
+          logEntry.append(s"---Notes---\n${params("notes").head}\n")
+        }
+        logEntry.append("---PHI---\n")
+        params.filter(_._1.startsWith("phi")).map(p => logEntry.append(s"${p._2.head}\n"))
+        if (params.contains("other") && (params.get("other") != None)) {
+          logEntry.append(s"Other phi: ${params.get("other").get.head}\n")
+        }
+        sendDownloadEmail(rid, uniqueFile.uniqueName, request.identity)
+        requestService.log(rid, request.identity.userID.toString, s"Send download link:\n${logEntry.toString().trim()}")
+        requestService.setState(rid, constants.AWAITINGDOWNLOAD)
+        Redirect(pages.routes.ApplicationController.requests(false)).flashing("success" -> messagesApi("download.mailed"))
+      } catch {
+        case e: Exception => Redirect(pages.routes.ApplicationController.requests(false)).flashing("error" -> messagesApi(e.getMessage))
       }
-      logEntry.append("---PHI---\n")
-      params.filter(_._1.startsWith("phi")).map(p => logEntry.append(s"${p._2.head}\n"))
-      if (params.contains("other") && (params.get("other") != None)) {
-        logEntry.append(s"Other phi: ${params.get("other").get.head}\n")
-      }
-      sendDownloadEmail(rid, uniqueFile.uniqueName, request.identity)
-      requestService.log(rid, request.identity.userID.toString, s"Send download link:\n${logEntry.toString().trim()}")
-      requestService.setState(rid, constants.AWAITINGDOWNLOAD)
-      Redirect(pages.routes.ApplicationController.requests(false)).flashing("success" -> messagesApi("download.mailed"))
     }.getOrElse {
       Redirect(pages.routes.ApplicationController.sendFile(rid)).flashing("error" -> messagesApi("error.chooseFile"))
     }
@@ -450,19 +449,21 @@ class ApplicationController @Inject() (
    * @param rid The request's id
    */
   def handleWithdrawFile(rid: Int) = silhouette.SecuredAction.async { implicit request =>
-    requestService.getUniqueFiles(rid).map(res => res.headOption match {
-      case Some((uf, req)) => {
-        uf.delete
+    requestService.getUniqueFiles(rid).map {
+      case (uf, req) => {
+        uf.foreach(_.delete)
         requestService.setDeleted(rid)
         requestService.setState(rid, constants.READYTOSEND)
-        requestService.log(rid, request.identity.userID.toString, messagesApi("request.withdrawn", uf.fileLocation))
+        uf.foreach(f =>
+          requestService.log(rid, request.identity.userID.toString, messagesApi("request.withdrawn", f.fileLocation))
+        )
         Redirect(pages.routes.ApplicationController.requests(false))
       }
       case _ => {
         Logger.error(messagesApi("request.no.file", rid))
         Redirect(pages.routes.ApplicationController.requests(false)).flashing(("error" -> messagesApi("request.no.file", rid)))
       }
-    })
+    }
   }
 
   /**

@@ -12,7 +12,7 @@ class RequestLogTable(tag: Tag) extends Table[RequestLog](tag, "request_log") {
   def request = column[Int]("requestId")
   def user = column[String]("userId")
   def text = column[String]("notes")
-  def timeMod = column[Timestamp]("timeMod")
+  def time = column[Timestamp]("timeMod")
 
-  def * = (id, request, user, text, timeMod) <> (RequestLog.tupled, RequestLog.unapply _)
+  def * = (id, request, user, text, time) <> (RequestLog.tupled, RequestLog.unapply _)
 }
