@@ -1,4 +1,4 @@
-@(user: User, r: DataRequest, req: List[(Int, Boolean, String)])(implicit request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets)
+@(user: User, r: DataRequest, req: Seq[(Int, Boolean, String)])(implicit request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets)
 
 @import controllers.routes
 @import helper._
