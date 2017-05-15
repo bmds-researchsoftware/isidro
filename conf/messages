@@ -183,6 +183,7 @@ mail.forgotpwd.postlink=Note that this link will expire in 24 hours. If you don'
 mail.forgotpwd.prelink=Someone (hopefully you) has requested a password reset for your ISIDRO account. Follow the link below to set a new password:
 mail.forgotpwd.subject=Reset your ISIDRO password
 
+email.from = isidro@dartmouth.edu
 email.reset.password.subject = Reset password
 email.reset.password.hello = Hello {0},
 email.reset.password.html.text = Please follow <a href="{0}">this link</a> to reset your password.

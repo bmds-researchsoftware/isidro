@@ -1,5 +1,6 @@
 package utils
 
+import akka.actor._
 import javax.inject.Inject
 import com.google.inject.ImplementedBy
 import play.api.Play.current
@@ -17,16 +18,16 @@ trait MailService {
   def sendEmail(recipients: String*)(subject: String, bodyHtml: String, bodyText: String): Unit
 }
 
-class MailServiceImpl @Inject() (mailerClient: MailerClient, val conf: Configuration) extends MailService with ConfigSupport {
+class MailServiceImpl @Inject() (mailerClient: MailerClient, val conf: Configuration, system: ActorSystem) extends MailService with ConfigSupport {
 
   lazy val from = confRequiredString("play.mailer.from")
 
   def sendEmailAsync(recipients: String*)(subject: String, bodyHtml: String, bodyText: String): Unit = {
-    //Akka.system.scheduler.scheduleOnce(100 milliseconds) {
-    //sendEmail(recipients: _*)(subject, bodyHtml, bodyText)
-    //}
-    sendEmail(recipients.head)(subject, bodyHtml, bodyText)
+    system.scheduler.scheduleOnce(100 milliseconds) {
+      sendEmail(recipients: _*)(subject, bodyHtml, bodyText)
+    }
   }
+
   def sendEmail(recipients: String*)(subject: String, bodyHtml: String, bodyText: String): Unit = {
     mailerClient.send(Email(subject, from, recipients, Some(bodyText), Some(bodyHtml)))
   }
