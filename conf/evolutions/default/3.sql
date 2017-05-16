@@ -3,7 +3,6 @@
 DROP TABLE IF EXISTS "request";
 CREATE TABLE "request" (
   "requestId" SERIAL,
-  "userId" int NOT NULL DEFAULT '0',
   "title" varchar(254) NOT NULL,
   "description" varchar(254) NOT NULL,
   "status" int NOT NULL DEFAULT '0',

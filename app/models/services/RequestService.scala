@@ -119,7 +119,7 @@ class RequestService @Inject() (requestDAO: RequestDAO, uniqueFileDAO: UniqueFil
    * @param uid: The unique name to load
    * @return (The requested UniqueFile, The Unique File's DataRequest)
    */
-  def getUniqueFileByName(uid: String): Future[Option[(UniqueFile, DataRequest)]] = uniqueFileDAO.getByName(uid)
+  def getUniqueFileByName(uid: String): Future[Seq[(UniqueFile, DataRequest)]] = uniqueFileDAO.getByName(uid)
 
   /**
    * Insert a UniqueFile into the db

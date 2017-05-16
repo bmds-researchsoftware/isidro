@@ -1,4 +1,4 @@
-@(user: User, r: DataRequest, log: Seq[(RequestLog, Option[models.tables.DbUser])])(implicit request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets)
+@(user: User, r: DataRequest, log: Seq[(RequestLog, Option[models.tables.DbUser])])(implicit request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets, constants: utils.Constants)
 
 @views.html.main(title = Messages("request.log.title", r.id, r.title), user = Some(user)) {
   <div class="container-fluid content">

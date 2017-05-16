@@ -16,7 +16,7 @@ import play.api.i18n.{ I18nSupport, MessagesApi }
 import play.api.mvc.{ Action, AnyContent, Controller }
 import utils.auth.DefaultEnv
 import play.api.data.Form
-import play.api.data.Forms.{ email, ignored, mapping, nonEmptyText, text }
+import play.api.data.Forms.{ email, ignored, list, mapping, nonEmptyText, text }
 import play.api.libs.Files.TemporaryFile
 import play.api.Logger
 
@@ -37,7 +37,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
  * @param webJarAssets The webjar assets implementation.
  */
 class ApplicationController @Inject() (
-  constants: Constants,
+  implicit
+  val constants: Constants,
   requestService: RequestService,
   fileUtils: FileUtils,
   implicit val mailService: MailService,
@@ -48,14 +49,21 @@ class ApplicationController @Inject() (
   extends Controller with I18nSupport {
   val newRequestForm = Form(mapping(
     "id" -> ignored(0),
-    "userId" -> ignored(0L),
     "email" -> email,
     "title" -> nonEmptyText,
     "description" -> nonEmptyText,
     "status" -> ignored(0),
-    "pi" -> text,
+    "pi" -> nonEmptyText,
     "phone" -> text,
     "cphs" -> text)(DataRequest.apply _)(DataRequest.unapply _))
+
+  case class RequirementListData(rawReqs: List[String]) {
+    def reqs = rawReqs.map(_.toInt)
+  }
+
+  val requirementForm = Form(mapping(
+    "rq" -> list(text)
+  )(RequirementListData.apply)(RequirementListData.unapply _))
 
   /**
    * Handles the index action.
@@ -329,7 +337,7 @@ class ApplicationController @Inject() (
       formWithErrors => Future.successful(BadRequest(views.html.request.editRequest(rid, formWithErrors))),
       req => {
         if (rid < 0) { // todo: change this to Option
-          val fullReq = req.copy(userId = 1, status = constants.NEWREQUEST)
+          val fullReq = req.copy(status = constants.NEWREQUEST)
           requestService.insert(fullReq).map(newId => {
             requestService.log(
               newId,
@@ -338,7 +346,7 @@ class ApplicationController @Inject() (
             Redirect(pages.routes.ApplicationController.requests(false))
           })
         } else {
-          val fullReq = req.copy(id = rid, userId = 1, status = constants.NEWREQUEST)
+          val fullReq = req.copy(id = rid, status = constants.NEWREQUEST)
           requestService.log(rid, request.identity.userID.toString, messagesApi("request.edited", fullReq.logString))
           requestService.update(rid, fullReq).map(_ => Redirect(pages.routes.ApplicationController.requests(false)))
         }
@@ -352,15 +360,20 @@ class ApplicationController @Inject() (
    * @param rid The request's id
    */
   def handleRequirements(rid: Int) = silhouette.SecuredAction.async { implicit request =>
-    val reqs = request.body.asFormUrlEncoded.head.map(_._1).filter(_.startsWith("rq")).map(_.substring(2).toInt)
-    val rrs = reqs.map(new RequestRequirement(rid, _))
-    requestService.deleteRequirements(rid)
-
-    requestService.getRequirementTitles(reqs).map(reqText =>
-      requestService.log(rid, request.identity.userID.toString, messagesApi("request.requirements.edited", reqText.mkString("\n")))
+    requirementForm.bindFromRequest.fold(
+      formWithErrors => { // The form is only checkboxes, so if there's an error there's nothing we can correct
+        Future.successful(Redirect(pages.routes.ApplicationController.requests(false)).flashing("error" -> messagesApi("form.error")))
+      },
+      requirementData => {
+        val rrs = requirementData.reqs.map(new RequestRequirement(rid, _))
+        requestService.deleteRequirements(rid)
+        requestService.getRequirementTitles(requirementData.reqs).map(reqText =>
+          requestService.log(rid, request.identity.userID.toString, messagesApi("request.requirements.edited", reqText.mkString("\n")))
+        )
+        requestService.setState(rid, constants.AWAITINGREQUIREMENTS)
+        requestService.addRequirements(rrs).map(_ => Redirect(pages.routes.ApplicationController.requests(false)))
+      }
     )
-    requestService.setState(rid, constants.AWAITINGREQUIREMENTS)
-    requestService.addRequirements(rrs).map(_ => Redirect(pages.routes.ApplicationController.requests(false)))
   }
 
   /**
@@ -369,7 +382,32 @@ class ApplicationController @Inject() (
    * @param rid The request's id
    */
   def handleProgress(rid: Int) = silhouette.SecuredAction.async { implicit request =>
-    val complete = request.body.asFormUrlEncoded.head.map(_._1).filter(_.startsWith("rq")).map(_.substring(2).toInt).toList
+    requirementForm.bindFromRequest.fold(
+      formWithErrors => { // The form is only checkboxes, so if there's an error there's nothing we can correct
+        Future.successful(Redirect(pages.routes.ApplicationController.requests(false)).flashing("error" -> messagesApi("form.error")))
+      },
+      requirementData => {
+        val complete = requirementData.reqs.map(_.toInt)
+        println(s"complete: $complete")
+
+        // Update db for all complete and incomplete requirements for this request
+        requestService.updateProgress(rid, complete)
+
+        // Log requirement progress
+        requestService.getRequirementProgress(rid).map {
+          case (_, prog) =>
+            {
+              val completeList = prog.filter(_._2).map(_._3).mkString("\n")
+              val incompleteList = prog.filter(!_._2).map(_._3).mkString("\n")
+              // Update request state based on whether any requirements are left incomplete
+              requestService.setState(rid, if (incompleteList.isEmpty) constants.READYTOSEND else constants.AWAITINGREQUIREMENTS)
+              requestService.log(rid, request.identity.userID.toString, messagesApi("request.progress", completeList, incompleteList))
+              Redirect(pages.routes.ApplicationController.requests(false))
+            }
+        }
+      }
+    )
+    /*    val complete = request.body.asFormUrlEncoded.head.map(_._1).filter(_.startsWith("rq")).map(_.substring(2).toInt).toList
 
     // Update db for all complete and incomplete requirements for this request
     requestService.updateProgress(rid, complete)
@@ -384,7 +422,7 @@ class ApplicationController @Inject() (
         requestService.log(rid, request.identity.userID.toString, messagesApi("request.progress", completeList, incompleteList))
         Redirect(pages.routes.ApplicationController.requests(false))
       }
-    }
+    }*/
 
   }
 

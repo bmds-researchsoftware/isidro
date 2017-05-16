@@ -14,6 +14,7 @@ import play.api.i18n.{ I18nSupport, Messages, MessagesApi }
 import play.api.libs.concurrent.Execution.Implicits._
 import play.api.mvc.{ Action, AnyContent, Controller }
 import utils.auth.{ DefaultEnv, WithProvider }
+import utils.Constants
 
 import scala.concurrent.Future
 
@@ -35,7 +36,8 @@ class ChangePasswordController @Inject() (
   credentialsProvider: CredentialsProvider,
   authInfoRepository: AuthInfoRepository,
   passwordHasherRegistry: PasswordHasherRegistry,
-  implicit val webJarAssets: WebJarAssets)
+  implicit val webJarAssets: WebJarAssets,
+  implicit val constants: Constants)
   extends Controller with I18nSupport {
 
   /**

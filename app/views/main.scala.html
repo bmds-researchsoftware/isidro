@@ -1,4 +1,4 @@
-@(title: String, user: Option[models.User] = None, scripts: Html = Html(""), navbarContent: Html = Html(""), withTitle: Boolean = false)(content: Html)(implicit request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets)
+@(title: String, user: Option[models.User] = None, scripts: Html = Html(""), navbarContent: Html = Html(""), withTitle: Boolean = false)(content: Html)(implicit request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets, constants: utils.Constants)
 
 <!DOCTYPE html>
 <html lang="en">
@@ -83,7 +83,7 @@
         }
       </div>
       @content
-      <div class="footer text-center"><small><a href="@Messages("copyright.url")">@Messages("copyright")</a> @Messages("copyright.msg", "2017")</small></div>      
+      <div class="footer text-center"><small><a href="@Messages("copyright.url")">@Messages("copyright")</a> @Messages("copyright.msg", constants.THISYEAR.toString)</small></div>
     </main>
     <script type="text/javascript" src="@routes.WebJarAssets.at(webJarAssets.locate("jquery.min.js"))"></script>
     <script type="text/javascript" src="@routes.WebJarAssets.at(webJarAssets.locate("bootstrap.min.js"))"></script>
