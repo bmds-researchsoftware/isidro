@@ -23,6 +23,7 @@ import play.api.Logger
 import scala.concurrent.Future
 import utils.{ Mailer, MailService, Constants }
 import utils.FileUtils
+import forms.pages.{ NewRequestForm, RequirementForm, RequirementListData }
 import models.services.{ RequestService }
 import models.{ DataRequest, RequestRequirement, User }
 
@@ -47,23 +48,6 @@ class ApplicationController @Inject() (
   socialProviderRegistry: SocialProviderRegistry,
   implicit val webJarAssets: WebJarAssets)
   extends Controller with I18nSupport {
-  val newRequestForm = Form(mapping(
-    "id" -> ignored(0),
-    "email" -> email,
-    "title" -> nonEmptyText,
-    "description" -> nonEmptyText,
-    "status" -> ignored(0),
-    "pi" -> nonEmptyText,
-    "phone" -> text,
-    "cphs" -> text)(DataRequest.apply _)(DataRequest.unapply _))
-
-  case class RequirementListData(rawReqs: List[String]) {
-    def reqs = rawReqs.map(_.toInt)
-  }
-
-  val requirementForm = Form(mapping(
-    "rq" -> list(text)
-  )(RequirementListData.apply)(RequirementListData.unapply _))
 
   /**
    * Handles the index action.
@@ -90,7 +74,7 @@ class ApplicationController @Inject() (
    */
   def newRequest = silhouette.SecuredAction.async { implicit request =>
     implicit val user = request.identity
-    Future.successful(Ok(views.html.request.newRequest(newRequestForm)))
+    Future.successful(Ok(views.html.request.newRequest(NewRequestForm.form)))
   }
 
   /**
@@ -135,7 +119,7 @@ class ApplicationController @Inject() (
       if (req.head.status >= constants.AWAITINGDOWNLOAD) {
         redirectToCurrentState(req.head)
       } else {
-        Ok(views.html.request.editRequest(rid, newRequestForm.fill(req.head)))
+        Ok(views.html.request.editRequest(rid, NewRequestForm.form.fill(req.head)))
       }
     })
   }
@@ -333,7 +317,7 @@ class ApplicationController @Inject() (
    */
   def handleEditRequest(rid: Int) = silhouette.SecuredAction.async { implicit request =>
     implicit val user = request.identity
-    newRequestForm.bindFromRequest.fold(
+    NewRequestForm.form.bindFromRequest.fold(
       formWithErrors => Future.successful(BadRequest(views.html.request.editRequest(rid, formWithErrors))),
       req => {
         if (rid < 0) { // todo: change this to Option
@@ -360,7 +344,7 @@ class ApplicationController @Inject() (
    * @param rid The request's id
    */
   def handleRequirements(rid: Int) = silhouette.SecuredAction.async { implicit request =>
-    requirementForm.bindFromRequest.fold(
+    RequirementForm.form.bindFromRequest.fold(
       formWithErrors => { // The form is only checkboxes, so if there's an error there's nothing we can correct
         Future.successful(Redirect(pages.routes.ApplicationController.requests(false)).flashing("error" -> messagesApi("form.error")))
       },
@@ -382,7 +366,7 @@ class ApplicationController @Inject() (
    * @param rid The request's id
    */
   def handleProgress(rid: Int) = silhouette.SecuredAction.async { implicit request =>
-    requirementForm.bindFromRequest.fold(
+    RequirementForm.form.bindFromRequest.fold(
       formWithErrors => { // The form is only checkboxes, so if there's an error there's nothing we can correct
         Future.successful(Redirect(pages.routes.ApplicationController.requests(false)).flashing("error" -> messagesApi("form.error")))
       },

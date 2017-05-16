@@ -26,9 +26,9 @@ class RequestDAO @Inject() (protected val dbConfigProvider: DatabaseConfigProvid
   import dbConfig.driver.api._
 
   def requestQuery(closed: Boolean = false) = {
-    for {
+    (for {
       dataRequests <- requests if (dataRequests.status === constants.CLOSED) === closed
-    } yield dataRequests
+    } yield dataRequests).sortBy(_.id)
   }
 
   /**

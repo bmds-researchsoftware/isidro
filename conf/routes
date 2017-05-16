@@ -17,8 +17,8 @@ GET         /password/forgot                 controllers.auth.ForgotPasswordCont
 POST        /password/forgot                 controllers.auth.ForgotPasswordController.submit
 GET         /password/reset/:token           controllers.auth.ResetPasswordController.view(token: java.util.UUID)
 POST        /password/reset/:token           controllers.auth.ResetPasswordController.submit(token: java.util.UUID)
-GET         /password/change                 controllers.auth.ChangePasswordController.view
-POST        /password/change                 controllers.auth.ChangePasswordController.submit
+# GET         /password/change                 controllers.auth.ChangePasswordController.view
+# POST        /password/change                 controllers.auth.ChangePasswordController.submit
 
 GET         /account/email/:email            controllers.auth.ActivateAccountController.send(email: String)
 GET         /account/activate/:token         controllers.auth.ActivateAccountController.activate(token: java.util.UUID)
