@@ -388,23 +388,6 @@ class ApplicationController @Inject() (
         }
       }
     )
-    /*    val complete = request.body.asFormUrlEncoded.head.map(_._1).filter(_.startsWith("rq")).map(_.substring(2).toInt).toList
-
-    // Update db for all complete and incomplete requirements for this request
-    requestService.updateProgress(rid, complete)
-
-    // Log requirement progress
-    requestService.getRequirementProgress(rid).map {
-      case (_, prog) => {
-        val completeList = prog.filter(_._2).map(_._3).mkString("\n")
-        val incompleteList = prog.filter(!_._2).map(_._3).mkString("\n")
-        // Update request state based on whether any requirements are left incomplete
-        requestService.setState(rid, if (incompleteList.isEmpty) constants.READYTOSEND else constants.AWAITINGREQUIREMENTS)
-        requestService.log(rid, request.identity.userID.toString, messagesApi("request.progress", completeList, incompleteList))
-        Redirect(pages.routes.ApplicationController.requests(false))
-      }
-    }*/
-
   }
 
   /**
