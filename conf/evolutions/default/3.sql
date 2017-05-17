@@ -4,7 +4,7 @@ DROP TABLE IF EXISTS "request";
 CREATE TABLE "request" (
   "requestId" SERIAL,
   "title" varchar(254) NOT NULL,
-  "description" varchar(254) NOT NULL,
+  "description" varchar(1024) NOT NULL,
   "status" int NOT NULL DEFAULT '0',
   "email" varchar(254) NOT NULL,
   "phone" varchar(64) NOT NULL,

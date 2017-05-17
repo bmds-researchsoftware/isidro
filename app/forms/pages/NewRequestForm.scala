@@ -14,10 +14,10 @@ object NewRequestForm {
     mapping(
       "id" -> ignored(0),
       "email" -> email,
-      "title" -> nonEmptyText,
-      "description" -> nonEmptyText,
+      "title" -> nonEmptyText(maxLength = 254),
+      "description" -> nonEmptyText(maxLength = 1024),
       "status" -> ignored(0),
-      "pi" -> nonEmptyText,
-      "phone" -> text,
-      "cphs" -> text)(DataRequest.apply _)(DataRequest.unapply _))
+      "pi" -> nonEmptyText(maxLength = 254),
+      "phone" -> text(maxLength = 64),
+      "cphs" -> text(maxLength = 64))(DataRequest.apply _)(DataRequest.unapply _))
 }

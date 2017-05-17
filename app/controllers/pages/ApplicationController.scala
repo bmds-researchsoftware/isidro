@@ -15,8 +15,6 @@ import controllers.{ WebJarAssets, pages }
 import play.api.i18n.{ I18nSupport, MessagesApi }
 import play.api.mvc.{ Action, AnyContent, Controller }
 import utils.auth.DefaultEnv
-import play.api.data.Form
-import play.api.data.Forms.{ email, ignored, list, mapping, nonEmptyText, text }
 import play.api.libs.Files.TemporaryFile
 import play.api.Logger
 
@@ -372,7 +370,6 @@ class ApplicationController @Inject() (
       },
       requirementData => {
         val complete = requirementData.reqs.map(_.toInt)
-        println(s"complete: $complete")
 
         // Update db for all complete and incomplete requirements for this request
         requestService.updateProgress(rid, complete)
