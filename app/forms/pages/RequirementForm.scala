@@ -7,10 +7,6 @@ import models.DataRequest
 
 /**
  * The form which handles a list of requirements
- * val requirementForm = Form(mapping(
- * "rq" -> list(text)
- * )(RequirementListData.apply)(RequirementListData.unapply _))
- *
  */
 
 case class RequirementListData(rawReqs: List[String]) {
