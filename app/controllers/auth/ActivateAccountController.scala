@@ -13,6 +13,7 @@ import play.api.libs.concurrent.Execution.Implicits._
 import play.api.libs.mailer.{ Email, MailerClient }
 import play.api.mvc.{ Action, AnyContent, Controller }
 import utils.auth.DefaultEnv
+import utils.Constants
 
 import scala.concurrent.Future
 import scala.language.postfixOps
@@ -28,6 +29,7 @@ import scala.language.postfixOps
  * @param webJarAssets     The WebJar assets locator.
  */
 class ActivateAccountController @Inject() (
+  val constants: Constants,
   val messagesApi: MessagesApi,
   silhouette: Silhouette[DefaultEnv],
   userService: UserService,
@@ -54,7 +56,7 @@ class ActivateAccountController @Inject() (
 
           mailerClient.send(Email(
             subject = Messages("email.activate.account.subject"),
-            from = Messages("email.from"),
+            from = constants.getString("play.mailer.from"),
             to = Seq(decodedEmail),
             bodyText = Some(views.txt.emails.activateAccount(user, url).body),
             bodyHtml = Some(views.html.emails.activateAccount(user, url).body)

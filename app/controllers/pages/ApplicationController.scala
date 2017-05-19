@@ -378,6 +378,8 @@ class ApplicationController @Inject() (
         requestService.getRequirementProgress(rid).map {
           case (_, prog) =>
             {
+              // Create strings containing the names of all complete and incomplete requirements for this request
+              // prog._2 => "complete" boolean, prog._3 => "name" string
               val completeList = prog.filter(_._2).map(_._3).mkString("\n")
               val incompleteList = prog.filter(!_._2).map(_._3).mkString("\n")
               // Update request state based on whether any requirements are left incomplete

@@ -1,12 +1,9 @@
 import org.scalatest._
-import java.awt.Robot
-import java.awt.event.KeyEvent
 import play.api.test.Helpers._
 import play.api.test._
 import org.scalatest.matchers._
 import org.scalatest.selenium._
 import org.openqa.selenium.support.FindBy
-import org.openqa.selenium.WebElement
 import org.scalatest.concurrent._
 
 class IsidroSpec extends FlatSpec with Matchers with HtmlUnit {
@@ -83,12 +80,6 @@ class IsidroSpec extends FlatSpec with Matchers with HtmlUnit {
     click on "dataFile"
     pressKeys("/home/rdj/docs/phi/orgs.csv")
     submit()
-    /*val robot = new Robot()
-    "/home/rdj/docs/phi/orgs.csv".foreach(c =>
-      robot.keyPress(c.toInt)
-    )
-    robot.keyRelease(KeyEvent.VK_ENTER)*/
-    //click on "submit"
   }
 
 }
