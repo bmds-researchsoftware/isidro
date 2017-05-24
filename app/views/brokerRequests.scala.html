@@ -1,4 +1,4 @@
-@(user: User, dr: List[DataRequest], closed: Boolean = false)(implicit request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets)
+@(user: User, dr: List[DataRequest], closed: Boolean = false)(implicit request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets, constants: utils.Constants)
 
 @import controllers.routes
 
@@ -20,7 +20,7 @@
     </div>
 
     @dr.map { r =>
-      <div class="row bx" data-url="/request/@r.id/edit@r.status">
+      <div id="requestrow" class="row bx" data-url="/request/@r.id/edit@r.status">
         <div class="col-sm-2">
           @r.statusString
         </div>

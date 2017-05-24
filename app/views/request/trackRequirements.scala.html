@@ -1,4 +1,4 @@
-@(user: User, r: DataRequest, req: List[(Int, Boolean, String)])(implicit request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets)
+@(user: User, r: DataRequest, req: Seq[(Int, Boolean, String)])(implicit request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets, constants: utils.Constants)
 
 @import controllers.routes
 @import helper._
@@ -21,7 +21,7 @@
           <div class="listheader">@Messages("trackRequirements.listHeader")</div>
           <div class="requirements">
             @req.map { rq =>
-              <input type="checkbox" name="rq@rq._1" id="rq@rq._1" @if(rq._2){checked} /> <label for="rq@rq._1">@rq._3</label><br>
+              <input type="checkbox" value="@rq._1" name="rq[@rq._1]" id="rq[@rq._1]" @if(rq._2){checked} /> <label for="rq[@rq._1]">@rq._3</label><br>
             }
           </div>
         </div>

@@ -11,7 +11,7 @@ import utils.Logger
 import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
- * A job which cleanup invalid auth tokens.
+ * A job which cleans up invalid auth tokens.
  *
  * @param service The auth token service implementation.
  * @param clock The clock implementation.

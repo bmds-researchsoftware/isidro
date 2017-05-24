@@ -8,13 +8,10 @@ import slick.driver.JdbcProfile
 import slick.jdbc.JdbcBackend
 import slick.lifted.TableQuery
 
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 import models.tables.{ DataRequestTable, UniqueFileTable }
-import models.UniqueFile
+import models.{ DataRequest, UniqueFile }
 import models.daos.UniqueFileDAO._
 
 class UniqueFileDAO @Inject() (protected val dbConfigProvider: DatabaseConfigProvider) {
@@ -28,7 +25,7 @@ class UniqueFileDAO @Inject() (protected val dbConfigProvider: DatabaseConfigPro
     db.run(insertQ += uf)
   }
 
-  def getByName(uid: String) = {
+  def getByName(uid: String): Future[Seq[(UniqueFile, DataRequest)]] = {
     val q = for {
       uf <- uniqueFiles if uf.uniqueName === uid
       r <- requests if uf.requestId === r.id

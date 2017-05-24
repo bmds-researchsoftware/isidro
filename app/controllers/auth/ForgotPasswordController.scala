@@ -12,6 +12,7 @@ import play.api.libs.concurrent.Execution.Implicits._
 import play.api.libs.mailer.{ Email, MailerClient }
 import play.api.mvc.{ Action, AnyContent, Controller }
 import utils.auth.DefaultEnv
+import utils.Constants
 
 import scala.concurrent.Future
 
@@ -31,7 +32,8 @@ class ForgotPasswordController @Inject() (
   userService: UserService,
   authTokenService: AuthTokenService,
   mailerClient: MailerClient,
-  implicit val webJarAssets: WebJarAssets)
+  implicit val webJarAssets: WebJarAssets,
+  implicit val constants: Constants)
   extends Controller with I18nSupport {
 
   /**

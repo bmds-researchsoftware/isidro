@@ -1,4 +1,4 @@
-@(rid: Int, requestForm: Form[DataRequest])(implicit request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets, user: User)
+@(rid: Int, requestForm: Form[DataRequest])(implicit request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets, user: User, constants: utils.Constants)
 @import b3.vertical.fieldConstructor
 @import controllers.pages.routes
 @import models.DataRequest
@@ -21,7 +21,7 @@
         <label for="description">Description:</label>
         @b3.textarea(requestForm("description"), '_hiddenLabel -> Messages("field.password"), 'placeholder -> Messages("field.requestDescription"))
         <label for="email">Email:</label>
-        @b3.text(requestForm("email"), '_hiddenLabel -> Messages("field.email"), 'placeholder -> Messages("field.requestEmail"))
+        @b3.email(requestForm("email"), '_hiddenLabel -> Messages("field.email"), 'placeholder -> Messages("field.requestEmail"))
         <label for="phone">Phone:</label>
         @b3.text(requestForm("phone"), '_hiddenLabel -> Messages("field.phone"), 'placeholder -> Messages("field.requestPhone"))
         <label for="pi">PI:</label>

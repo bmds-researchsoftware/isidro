@@ -23,7 +23,7 @@ libraryDependencies ++= Seq(
   "com.adrianhurt" %% "play-bootstrap" % "1.0-P25-B3",
   "com.mohiva" %% "play-silhouette-testkit" % "4.0.0" % "test",
   "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % "test", // scala test + play
-  "org.seleniumhq.selenium" % "selenium-chrome-driver" % "2.3.1",
+  "org.seleniumhq.selenium" % "selenium-chrome-driver" % "2.35.0",
   "org.postgresql" % "postgresql" % "9.4.1212",
   "com.typesafe.play" %% "play-slick" % "2.0.0",
   "com.typesafe.play" %% "play-slick-evolutions" % "2.0.0",

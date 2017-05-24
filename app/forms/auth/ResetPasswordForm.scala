@@ -12,6 +12,14 @@ object ResetPasswordForm {
    * A play framework form.
    */
   val form = Form(
-    "password" -> nonEmptyText
+    "password" -> tuple(
+      "main" -> nonEmptyText,
+      "confirm" -> nonEmptyText
+    ).verifying(
+        "Passwords don't match", password => password._1 == password._2
+      ).transform[String](
+          password => password._1,
+          password => ("", "")
+        )
   )
 }

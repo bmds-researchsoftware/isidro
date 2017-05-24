@@ -3,9 +3,8 @@
 DROP TABLE IF EXISTS "request";
 CREATE TABLE "request" (
   "requestId" SERIAL,
-  "userId" int NOT NULL DEFAULT '0',
   "title" varchar(254) NOT NULL,
-  "description" varchar(254) NOT NULL,
+  "description" varchar(1024) NOT NULL,
   "status" int NOT NULL DEFAULT '0',
   "email" varchar(254) NOT NULL,
   "phone" varchar(64) NOT NULL,
@@ -30,7 +29,7 @@ CREATE TABLE "requirement" (
   "requirementText" varchar(254) NOT NULL,
   PRIMARY KEY ("requirementId")
 );
-INSERT INTO "requirement" VALUES (7,14,'End-User Licensing Agreement',''),(8,16,'Data Use Agreement',''),(9,18,'Acceptable Use Agreement',''),(10,20,'Omnibus Privacy and Security Policy',''),(11,22,'CITI Researcher Training Completion Attestation',''),(12,24,'HIPAA Privacy Training',''),(13,26,'HIPAA Security Training',''),(14,28,'Researcher Specific Privacy and Security Training',''),(15,30,'REDCap Privacy and Security Training','');
+INSERT INTO "requirement" VALUES (1,14,'End-User Licensing Agreement',''),(2,16,'Data Use Agreement',''),(3,18,'Acceptable Use Agreement',''),(4,20,'Omnibus Privacy and Security Policy',''),(5,22,'CITI Researcher Training Completion Attestation',''),(6,24,'HIPAA Privacy Training',''),(7,26,'HIPAA Security Training',''),(8,28,'Researcher Specific Privacy and Security Training',''),(9,30,'REDCap Privacy and Security Training','');
 
 DROP TABLE IF EXISTS "status";
 CREATE TABLE "status" (
@@ -66,7 +65,7 @@ CREATE TABLE "unique_file" (
 
 
 INSERT INTO "isidro_user" VALUES
-    (1,'','Test','User','test.user@example.com',TRUE,'$2a$10$Mtcq4iFwL6tRhekgpH3jxeckRUqu8tKcM0JpmdsUz7srLtAbvDW06','master');
+    (1,'','Test','User','test.user@example.com',TRUE,'$2a$10$Mtcq4iFwL6tRhekgpH3jxeckRUqu8tKcM0JpmdsUz7srLtAbvDW06','broker');
 
 DELETE FROM "users";
 DELETE FROM "login_info";

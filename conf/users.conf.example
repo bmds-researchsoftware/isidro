@@ -1,0 +1,4 @@
+user.email = "test.user@example.com"
+user.firstname = "Test"
+user.lastname = "User"
+user.password = "xyzzy123"

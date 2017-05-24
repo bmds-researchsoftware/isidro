@@ -1,4 +1,4 @@
-@(user: User, r: DataRequest, req: List[Requirement], rr: List[Int])(implicit request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets)
+@(user: User, r: DataRequest, req: Seq[Requirement], rr: Seq[Int])(implicit request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets, constants: utils.Constants)
 
 @import controllers.routes
 @import helper._
@@ -23,7 +23,7 @@
               @if(rq.title=="") {
                 <h4>@rq.text</h4>
               } else {
-                <input type="checkbox" name="rq@rq.id" id="rq@rq.id" @if(rr contains rq.id){checked} /> <label for="rq@rq.id">@rq.title</label><br>
+                <input type="checkbox" value="@rq.id" name="rq[@rq.id]" id="rq[@rq.id]" @if(rr contains rq.id){checked} /> <label for="rq[@rq.id]">@rq.title</label><br>
               }
             }
           </div>
