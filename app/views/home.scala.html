@@ -1,0 +1,18 @@
+@(user: models.User)(implicit request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets, constants: utils.Constants)
+
+@main(Messages("home.title"), Some(user), withTitle = true) {
+  <div class="container">
+    <div class="box-center">
+      <div class="row">
+        <div class="col-sm-5 description">
+          <h4>ISIDRO</h4>
+          @Messages("isidroDescription")
+        </div>
+        <div class="col-sm-5 col-sm-offset-2 description">
+          <h4>Contact Information</h4>
+          @Messages("contactDescription")
+        </div>
+      </div>
+    </div>
+  </div>
+}

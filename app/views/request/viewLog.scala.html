@@ -1,6 +1,6 @@
-@(r: DataRequest, log: List[(RequestLog, Option[User])])(implicit request: RequestHeader, user: User, messages: Messages)
+@(user: User, r: DataRequest, log: Seq[(RequestLog, Option[models.tables.DbUser])])(implicit request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets, constants: utils.Constants)
 
-@views.html.templates.logged(title = Messages("request.log.title", r.id, r.title), tab = "update") {
+@views.html.main(title = Messages("request.log.title", r.id, r.title), user = Some(user)) {
   <div class="container-fluid content">
     <div class="row">
       <div class="col-sm-8 col-sm-offset-2 requpdate">

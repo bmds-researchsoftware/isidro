@@ -1,35 +1,40 @@
-@(signInForm: Form[(String, String)])(implicit request: RequestHeader, messages: Messages)
-@import b3.vertical.fieldConstructor
-@import controllers.routes
-@import helper._
+@import forms.auth.SignInForm
+@(signInForm: Form[SignInForm.Data], socialProviders: com.mohiva.play.silhouette.impl.providers.SocialProviderRegistry)(implicit request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets, constants: utils.Constants)
 
-@default("Sign In") {
-@tags.alertsFromRequest(request)
+@import b3.inline.fieldConstructor
 
-@b3.form(routes.Auth.authenticate) {
-  @CSRF.formField  
-  <fieldset>
-    <legend>@Messages("signin.title")</legend>
-    @b3.text( signInForm("identifier"), '_hiddenLabel -> Messages("field.email"), 'placeholder -> "your@email.com", 'autofocus -> true )
-    @b3.password( signInForm("password"), '_hiddenLabel -> Messages("field.password"), 'placeholder -> Messages("field.password") )
-    @b3.submit('class -> "btn btn-primary btn-block"){ @Messages("signin") }
-    <div class="post-form-opts">
-      <p>@Messages("signin.forgot.question") <a href="@routes.Auth.forgotPassword">@Messages("signin.forgot")</a></p>
-    </div>
-    <hr />
-    <div class="container-fluid">
-      <div class="box-center"><div class="row">
-        <div class="col-sm-5 description">
-          <h4>General Description</h4>
-          @Messages("generalDescription")
+@main(Messages("sign.in.title"), withTitle = true) {
+  <div class="starter-template row">
+    <fieldset class="col-md-6 col-md-offset-3">
+        <legend>@Messages("sign.in.credentials")</legend>
+        @helper.form(action = controllers.auth.routes.SignInController.submit()) {
+            @helper.CSRF.formField
+            @b3.email(signInForm("email"), '_hiddenLabel -> Messages("email"), 'placeholder -> Messages("email"), 'class -> "form-control input-lg")
+            @b3.password(signInForm("password"), '_hiddenLabel -> Messages("password"), 'placeholder -> Messages("password"), 'class -> "form-control input-lg")
+            <div class="form-group">
+                <div>
+                    <button id="submit" type="submit" value="submit" class="btn btn-lg btn-primary btn-block">@Messages("sign.in")</button>
+                </div>
+            </div>
+        }
+
+        <div>
+            <p><a href="@controllers.auth.routes.ForgotPasswordController.view()" title="@Messages("forgot.your.password")">@Messages("forgot.your.password")</a></p>
         </div>
-        <div class="col-sm-5 col-sm-offset-2 description">
-          <h4>Institutional Description</h4>
-          @Messages("institutionalDescription")
+        <hr />
+        <div class="container-fluid">
+          <div class="box-center"><div class="row">
+            <div class="col-sm-5 description">
+              <h4>General Description</h4>
+              @Messages("generalDescription")
+            </div>
+            <div class="col-sm-5 col-sm-offset-2 description">
+              <h4>Institutional Description</h4>
+              @Messages("institutionalDescription")
+            </div>
+          </div></div>
         </div>
-      </div></div>
-    </div>
-    @views.html.tags.signInHelper()
-  </fieldset>
-  }
+        @views.html.tags.signInHelper()
+    </fieldset>
+  </div>
 }

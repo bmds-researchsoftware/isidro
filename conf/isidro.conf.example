@@ -1,0 +1,13 @@
+# ISIDRO Configuration
+outputDir = /home/rdj/tmp/isidro
+outputCsv = data.csv
+outputXlsx = data.xlsx
+isidroWorksheetName = isidro
+watermarkImagePath = /path/to/watermark.png
+inputSignature = signature
+inputPassword = password
+encryptionAlgorithm = aes256
+storage.dir = /path/to/isidro_storage/
+serverName = "http://localhost:9000"
+fileExpiration = 3
+minPasswordLength = 8

@@ -7,6 +7,7 @@ import java.io.IOException
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.sql.Date
+import javax.inject.Inject
 
 import org.apache.commons.io.FileUtils
 import org.apache.commons.lang3.time.DateUtils
@@ -30,7 +31,7 @@ case class UniqueFile(
    * @param filesExpiration Age in days when file expires
    * @return if the file has expired.
    */
-  def isFileExpired(filesExpiration: Int)={
+  def isFileExpired(filesExpiration: Int) = {
     val numDaysAgo = DateUtils.addDays(new java.util.Date, -filesExpiration)
     dateCreated.before(numDaysAgo)
   }
@@ -41,7 +42,7 @@ case class UniqueFile(
   }
 }
 
-object UniqueFileServ {
+class UniqueFileServ @Inject() (constants: Constants) {
   /**
    * Associates given file with randomly generated unique identifier by copying and storing it in
    * the given storage location and then returning DAO for insertion into database.
@@ -53,14 +54,14 @@ object UniqueFileServ {
    * @throws IOException thrown file I/O fails.
    */
   def generateUniqueFile(inputPath: String, originalFileName: String,
-    storeDir: String, id: Int, password: Option[String]) /*throws IOException*/= {
+    storeDir: String, id: Int, password: Option[String]) /*throws IOException*/ = {
     val path = Paths.get(storeDir, id + ".xlsx")
     new File(storeDir).mkdirs
-     val is = new FileInputStream(inputPath)
+    val is = new FileInputStream(inputPath)
     val os = new FileOutputStream(path.toFile)
     FileUtils.copyFile(new File(inputPath), path.toFile)
 
-    val uniqueName = RandomUtils.generateRandomNumberString(Constants.RANDOMBITS, Constants.RADIX)
+    val uniqueName = RandomUtils.generateRandomNumberString(constants.RANDOMBITS, constants.RADIX)
     new UniqueFile(false, password, path.toString, uniqueName, id, originalFileName, new java.sql.Date(new java.util.Date().getTime))
   }
 }

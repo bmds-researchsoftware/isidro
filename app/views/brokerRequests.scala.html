@@ -1,8 +1,8 @@
-@(dr: List[DataRequest], closed: Boolean = false)(implicit request: RequestHeader, user: User, messages: Messages)
+@(user: User, dr: List[DataRequest], closed: Boolean = false)(implicit request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets, constants: utils.Constants)
 
 @import controllers.routes
 
-@views.html.templates.logged(title = "Incoming Requests", tab = "brokerrequests") {
+@views.html.main(title = "Incoming Requests", user = Some(user), scripts = Html("<script src='/assets/javascripts/requests.js'>")) {
 	
   <h1>@{if(closed)Messages("brokerclosedrequests.title") else Messages("brokerrequests.title")}</h1>
   @if(closed) {
@@ -20,7 +20,7 @@
     </div>
 
     @dr.map { r =>
-      <div class="row bx" onclick="document.location.href = '/request/@r.id/edit@r.status'">
+      <div id="requestrow" class="row bx" data-url="/request/@r.id/edit@r.status">
         <div class="col-sm-2">
           @r.statusString
         </div>
@@ -34,7 +34,7 @@
           @r.email
         </div>
         <div class="col-sm-1">
-          <a href="@routes.Isidro.viewLog(r.id)">Log</a>
+          <a href="@pages.routes.ApplicationController.viewLog(r.id)">Log</a>
         </div>
       </div>
     }

@@ -1,9 +1,9 @@
-@(r: DataRequest)(implicit request: RequestHeader, user: User, messages: Messages)
+@(user: User, r: DataRequest)(implicit request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets, constants: utils.Constants)
 
-@import controllers.routes
+@import controllers.pages.routes
 @import helper._
 
-@views.html.templates.logged(title = Messages("editAwaiting.title", r.id, r.title), tab = "update") {
+@views.html.main(title = Messages("editAwaiting.title", r.id, r.title), user = Some(user)) {
   <hr />
   <div class="container-fluid content">
     <div class="row">
@@ -18,7 +18,7 @@
       <p>
         <div class="row">
           <div class="col-sm-12 submitrow">
-            <input type="submit" value="Delete File (Prevent download)" /> <a href="@routes.Isidro.requests(false)" class="button">Cancel</a> 
+            <input type="submit" value="Delete File (Prevent download)" /> <a href="@routes.ApplicationController.requests(false)" class="button">Cancel</a> 
           </div>
         </div>
       </p>

@@ -2,7 +2,6 @@ package models
 
 case class DataRequest(
   id: Int,
-  userId: Long,
   email: String,
   title: String,
   description: String,

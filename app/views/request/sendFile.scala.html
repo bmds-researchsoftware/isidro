@@ -1,9 +1,9 @@
-@(r: DataRequest)(implicit request: RequestHeader, user: User, messages: Messages)
+@(user: User, r: DataRequest)(implicit request: RequestHeader, messages: Messages, webJarAssets: WebJarAssets, constants: utils.Constants)
 
 @import controllers.routes
 @import helper._
 
-@views.html.templates.logged(title = Messages("send.file.title"), tab = "update") {
+@views.html.main(title = Messages("send.file.title"), user = Some(user)) {
   <hr/>
   <div class="container-fluid content">
     <div class="row">

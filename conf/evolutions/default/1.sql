@@ -1,89 +1,62 @@
 # --- !Ups
 
-DROP TABLE IF EXISTS "request";
-CREATE TABLE "request" (
-  "requestId" SERIAL,
-  "userId" int NOT NULL DEFAULT '0',
-  "title" varchar(254) NOT NULL,
-  "description" varchar(254) NOT NULL,
-  "status" int NOT NULL DEFAULT '0',
-  "email" varchar(254) NOT NULL,
-  "phone" varchar(64) NOT NULL,
-  "cphs" varchar(64) NOT NULL,
-  "pi" varchar(254) NOT NULL,
-  PRIMARY KEY ("requestId")
+CREATE TABLE users (
+  user_id CHARACTER VARYING NOT NULL PRIMARY KEY,
+  first_name CHARACTER VARYING,
+  last_name CHARACTER VARYING,
+  full_name CHARACTER VARYING,
+  email CHARACTER VARYING,
+  avatar_url CHARACTER VARYING,
+  activated BOOLEAN DEFAULT FALSE
 );
 
-DROP TABLE IF EXISTS "request_requirement";
-CREATE TABLE "request_requirement" (
-  "requestId" int NOT NULL,
-  "requirementId" int NOT NULL,
-  "completed" boolean NOT NULL default FALSE,
-  PRIMARY KEY ("requestId", "requirementId")
+CREATE TABLE auth_tokens (
+  id CHARACTER VARYING PRIMARY KEY,
+  user_id CHARACTER VARYING NOT NULL,
+  expiry CHARACTER VARYING
 );
 
-DROP TABLE IF EXISTS "requirement";
-CREATE TABLE "requirement" (
-  "requirementId" SERIAL,
-  "requirementOrder" int NOT NULL,
-  "requirementName" varchar(254) NOT NULL,
-  "requirementText" varchar(254) NOT NULL,
-  PRIMARY KEY ("requirementId")
-);
-INSERT INTO "requirement" VALUES (7,14,'End-User Licensing Agreement',''),(8,16,'Data Use Agreement',''),(9,18,'Acceptable Use Agreement',''),(10,20,'Omnibus Privacy and Security Policy',''),(11,22,'CITI Researcher Training Completion Attestation',''),(12,24,'HIPAA Privacy Training',''),(13,26,'HIPAA Security Training',''),(14,28,'Researcher Specific Privacy and Security Training',''),(15,30,'REDCap Privacy and Security Training','');
-
-DROP TABLE IF EXISTS "status";
-CREATE TABLE "status" (
-  "statusId" SERIAL,
-  "statusName" varchar(254) NOT NULL,
-  PRIMARY KEY ("statusId")
+CREATE TABLE login_info (
+  id SERIAL PRIMARY KEY,
+  provider_id CHARACTER VARYING NOT NULL,
+  provider_key CHARACTER VARYING NOT NULL
 );
 
-DROP TABLE IF EXISTS "isidro_user";
-CREATE TABLE "isidro_user" (
-  "userId" SERIAL,
-  "netId" varchar(254) NOT NULL DEFAULT '',
-  "firstName" varchar(254) NOT NULL,
-  "lastName" varchar(254) NOT NULL,
-  "email" varchar(254) NOT NULL,
-  "emailConfirmed" boolean NOT NULL DEFAULT FALSE,
-  "password" varchar(254) NOT NULL DEFAULT '',
-  "services" varchar(254) NOT NULL DEFAULT '',
-  PRIMARY KEY ("userId")
+CREATE TABLE user_login_info (
+  user_id CHARACTER VARYING NOT NULL,
+  login_info_id INTEGER NOT NULL
 );
 
-DROP TABLE IF EXISTS "unique_file";
-CREATE TABLE "unique_file" (
-  "isDeleted" boolean NOT NULL DEFAULT FALSE,
-  "password" varchar(254) DEFAULT NULL,
-  "fileLocation" varchar(254) NOT NULL,
-  "uniqueName" varchar(254) NOT NULL,
-  "requestId" int NOT NULL,
-  "fileName" varchar(254) NOT NULL DEFAULT '',
-  "dateCreated" date NOT NULL DEFAULT now(),
-  PRIMARY KEY ("uniqueName")
+CREATE TABLE password_info (
+  user_id CHARACTER VARYING NOT NULL,
+  password CHARACTER VARYING NOT NULL,
+  salt CHARACTER VARYING,
+  login_info_id INTEGER NOT NULL
 );
 
-
-INSERT INTO "isidro_user" VALUES
-    (1,'','Test','User','test.user@example.com',TRUE,'$2a$10$Mtcq4iFwL6tRhekgpH3jxeckRUqu8tKcM0JpmdsUz7srLtAbvDW06','master');
-
-DROP TABLE IF EXISTS "request_log";
-CREATE TABLE "request_log" (
-  "id" SERIAL,
-  "requestId" int NOT NULL,
-  "userId" int NOT NULL default 0,
-  "notes" varchar(4096) NOT NULL,
-  "timeMod" timestamp NOT NULL default now(),
-  PRIMARY KEY ("id")
+CREATE TABLE oauth1_info (
+  id SERIAL PRIMARY KEY,
+  token CHARACTER VARYING NOT NULL,
+  secret CHARACTER VARYING NOT NULL,
+  login_info_id INTEGER NOT NULL
 );
+
+CREATE TABLE oauth2_info (
+  id SERIAL PRIMARY KEY,
+  access_token CHARACTER VARYING NOT NULL,
+  token_type CHARACTER VARYING,
+  expires_in INTEGER,
+  refresh_token CHARACTER VARYING,
+  login_info_id INTEGER NOT NULL
+);
+
 
 # --- !Downs
 
-DROP TABLE IF EXISTS "request_requirement";
-DROP TABLE IF EXISTS "request";
-DROP TABLE IF EXISTS "requirement";
-DROP TABLE IF EXISTS "status";
-DROP TABLE IF EXISTS "isidro_user";
-DROP TABLE IF EXISTS "user_requirement_log";
-DROP TABLE IF EXISTS "unique_file";
+DROP TABLE IF EXISTS "auth_tokens";
+DROP TABLE IF EXISTS "oauth2_info";
+DROP TABLE IF EXISTS "oauth1_info";
+DROP TABLE IF EXISTS "password_info";
+DROP TABLE IF EXISTS "user_login_info";
+DROP TABLE IF EXISTS "users";
+DROP TABLE IF EXISTS "login_info";
