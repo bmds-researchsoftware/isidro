@@ -22,6 +22,60 @@ import utils.auth.DefaultEnv
 class ApplicationControllerSpec extends PlaySpecification with Mockito {
   sequential
 
+  "The `index` action" should {
+    "redirect to login page." in new Context {
+      new WithApplication(application) {
+        val Some(result) = route(app, FakeRequest(pages.routes.ApplicationController.index))
+        redirectLocation(result) must beSome(auth.routes.SignInController.view.toString)
+      }
+    }
+  }
+
+    "The `signOut` action" should {
+      "redirect to home page if user is authorized" in new Context {
+        new WithApplication(application) {
+
+          val Some(result) = route(app,
+            FakeRequest(pages.routes.ApplicationController.signOut).withAuthenticator[DefaultEnv](identity.loginInfo))
+          redirectLocation(result) must beSome(pages.routes.ApplicationController.index)
+        }
+      }
+
+      "redirect to login page if user is unauthorized" in new Context {
+        new WithApplication(application) {
+          val Some(result) = route(app,
+            FakeRequest(pages.routes.ApplicationController.signOut))
+          redirectLocation(result) must beSome(auth.routes.SignInController.view.toString)
+        }
+      }
+    }
+
+    "The `newRequest` action" should {
+      "return 200 new request page if user is authorized" in new Context {
+        new WithApplication(application) {
+
+          val request = FakeRequest(pages.routes.ApplicationController.newRequest).withAuthenticator[DefaultEnv](identity.loginInfo)
+          val Some(result) = route(app, request)
+
+          status(result) must be equalTo OK
+          contentType(result) must beSome("text/html")
+          contentAsString(result) must contain("New Request")
+        }
+      }
+
+      "return 200 login page if user is unauthorized" in new Context {
+        new WithApplication(application) {
+
+          val request = FakeRequest(pages.routes.ApplicationController.newRequest)
+          val Some(result) = route(app, request)
+
+          status(result) must be equalTo OK
+          contentType(result) must beSome("text/html")
+          contentAsString(result) must contain("Sign in to ISIDRO")
+        }
+      }
+    }
+
   "The `requests` action" should {
     "redirect to login page if user is unauthorized" in new Context {
       new WithApplication(application) {
@@ -41,6 +95,7 @@ class ApplicationControllerSpec extends PlaySpecification with Mockito {
         contentAsString(unauthorizedResult) must contain("Sign in to ISIDRO")
       }
     }
+  }
 
     "return 200 if user is authorized" in new Context {
       new WithApplication(application) {
@@ -51,8 +106,59 @@ class ApplicationControllerSpec extends PlaySpecification with Mockito {
         status(result) must beEqualTo(OK)
       }
     }
+
+
+  "The `editRequest` action" should {
+    "return 200 new request page if user is authorized" in new Context {
+      new WithApplication(application) {
+
+        val request = FakeRequest(pages.routes.ApplicationController.editRequest(1)).withAuthenticator[DefaultEnv](identity.loginInfo)
+        val Some(result) = route(app, request)
+
+        status(result) must be equalTo OK
+        contentType(result) must beSome("text/html")
+        contentAsString(result) must contain("New Request")
+      }
+    }
+
+    "return 200 login page if user is unauthorized" in new Context {
+      new WithApplication(application) {
+
+        val request = FakeRequest(pages.routes.ApplicationController.editRequest(1))
+        val Some(result) = route(app, request)
+
+        status(result) must be equalTo OK
+        contentType(result) must beSome("text/html")
+        contentAsString(result) must contain("Sign in to ISIDRO")
+      }
+    }
   }
 
+  "The `editRequirements` action" should {
+    "return 200 new request page if user is authorized" in new Context {
+      new WithApplication(application) {
+
+        val request = FakeRequest(pages.routes.ApplicationController.editRequirements(1)).withAuthenticator[DefaultEnv](identity.loginInfo)
+        val Some(result) = route(app, request)
+
+        status(result) must be equalTo OK
+        contentType(result) must beSome("text/html")
+        contentAsString(result) must contain("New Request")
+      }
+    }
+
+    "return 200 login page if user is unauthorized" in new Context {
+      new WithApplication(application) {
+
+        val request = FakeRequest(pages.routes.ApplicationController.editRequirements(1))
+        val Some(result) = route(app, request)
+
+        status(result) must be equalTo OK
+        contentType(result) must beSome("text/html")
+        contentAsString(result) must contain("Sign in to ISIDRO")
+      }
+    }
+  }
   /**
    * The context.
    */
