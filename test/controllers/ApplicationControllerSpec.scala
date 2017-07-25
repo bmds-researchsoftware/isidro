@@ -25,8 +25,8 @@ import scala.concurrent.Future
 class ApplicationControllerSpec extends PlaySpecification with Mockito {
   sequential
 
-  private val REDIRECT_TO_LOGIN = "redirect to login page if user is unauthorized"
-  private val CONTENT_TYPE = "text/html"
+  private val REDIRECT_TO_LOGIN: String = "redirect to login page if user is unauthorized"
+  private val HTML_CONTENT_TYPE: String = "text/html"
 
   "The `index` action" should {
     "redirect to login page" in new Context {
@@ -35,7 +35,7 @@ class ApplicationControllerSpec extends PlaySpecification with Mockito {
         val Some(newResult) = redirectResult(app, result)
 
         status(newResult) must be equalTo OK
-        contentType(newResult) must beSome(CONTENT_TYPE)
+        contentType(newResult) must beSome(HTML_CONTENT_TYPE)
         contentAsString(newResult) must contain("Sign in to ISIDRO")
       }
     }
@@ -51,7 +51,7 @@ class ApplicationControllerSpec extends PlaySpecification with Mockito {
         val Some(finalResult) = redirectResultWithAuth(app, result)
 
         status(finalResult) must be equalTo OK
-        contentType(finalResult) must beSome(CONTENT_TYPE)
+        contentType(finalResult) must beSome(HTML_CONTENT_TYPE)
         contentAsString(finalResult) must contain("ISIDRO - Home")
       }
     }
@@ -71,7 +71,7 @@ class ApplicationControllerSpec extends PlaySpecification with Mockito {
           val Some(result) = route(app, request)
 
           status(result) must be equalTo OK
-          contentType(result) must beSome(CONTENT_TYPE)
+          contentType(result) must beSome(HTML_CONTENT_TYPE)
           contentAsString(result) must contain("New Request")
         }
       }
@@ -99,7 +99,7 @@ class ApplicationControllerSpec extends PlaySpecification with Mockito {
         )
 
         status(result) must beEqualTo(OK)
-        contentType(result) must beSome(CONTENT_TYPE)
+        contentType(result) must beSome(HTML_CONTENT_TYPE)
         contentAsString(result) must contain("Requests")
       }
     }
@@ -114,7 +114,7 @@ class ApplicationControllerSpec extends PlaySpecification with Mockito {
         val Some(finalResult) = redirectResultWithAuth(app, result)
 
         status(finalResult) must be equalTo OK
-        contentType(finalResult) must beSome(CONTENT_TYPE)
+        contentType(finalResult) must beSome(HTML_CONTENT_TYPE)
         contentAsString(finalResult) must contain("New Request")
       }
     }
@@ -135,7 +135,7 @@ class ApplicationControllerSpec extends PlaySpecification with Mockito {
         val Some(finalResult) = redirectResultWithAuth(app, result)
 
         status(finalResult) must be equalTo OK
-        contentType(finalResult) must beSome(CONTENT_TYPE)
+        contentType(finalResult) must beSome(HTML_CONTENT_TYPE)
         contentAsString(finalResult) must contain("Edit Requirements") or contain("View Log")
       }
     }
@@ -179,7 +179,7 @@ class ApplicationControllerSpec extends PlaySpecification with Mockito {
       val Some(finalResult) = redirectResult(app, result)
 
       status(finalResult) must be equalTo OK
-      contentType(finalResult) must beSome(CONTENT_TYPE)
+      contentType(finalResult) must beSome(HTML_CONTENT_TYPE)
       contentAsString(finalResult) must contain("Sign in to ISIDRO")
     }
 
