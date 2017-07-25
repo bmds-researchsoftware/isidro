@@ -6,22 +6,26 @@ import com.google.inject.AbstractModule
 import com.mohiva.play.silhouette.api.{Environment, LoginInfo}
 import com.mohiva.play.silhouette.test._
 import controllers.pages.ApplicationController
-import models.User
+import models.services.RequestService
+import models.{DataRequest, User}
 import net.codingwell.scalaguice.ScalaModule
+import org.specs2.matcher.MatchResult
 import org.specs2.mock.Mockito
 import org.specs2.specification.Scope
+import play.Mode
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.concurrent.Execution.Implicits._
 import play.api.mvc.{AnyContentAsEmpty, Result}
-import play.api.test.{FakeRequest, PlaySpecification, WithApplication}
+import play.api.test.{FakeRequest, Helpers, PlaySpecification, WithApplication}
 import utils.auth.DefaultEnv
 
 import scala.concurrent.Future
+import scala.util.Random
 
 /**
- * Test case for the [[ApplicationController]] class.
- */
+  * Test case for the [[ApplicationController]] class.
+  */
 class ApplicationControllerSpec extends PlaySpecification with Mockito {
   sequential
 
@@ -31,7 +35,7 @@ class ApplicationControllerSpec extends PlaySpecification with Mockito {
   "The `index` action" should {
     "redirect to login page" in new Context {
       new WithApplication(application) {
-        val Some(result) = route(app, FakeRequest(pages.routes.ApplicationController.index))
+        val Some(result) = route(app, FakeRequest(pages.routes.ApplicationController.index()))
         val Some(newResult) = redirectResult(app, result)
 
         status(newResult) must be equalTo OK
@@ -46,7 +50,7 @@ class ApplicationControllerSpec extends PlaySpecification with Mockito {
       new WithApplication(application) {
 
         val Some(result) = route(app,
-          FakeRequest(pages.routes.ApplicationController.signOut).withAuthenticator[DefaultEnv](identity.loginInfo))
+          FakeRequest(pages.routes.ApplicationController.signOut()).withAuthenticator[DefaultEnv](identity.loginInfo))
 
         val Some(finalResult) = redirectResultWithAuth(app, result)
 
@@ -58,30 +62,30 @@ class ApplicationControllerSpec extends PlaySpecification with Mockito {
 
     REDIRECT_TO_LOGIN in new Context {
       new WithApplication(application) {
-        redirectLoginOnUnauthorized(app,FakeRequest(pages.routes.ApplicationController.signOut))
+        redirectLoginOnUnauthorized(app, FakeRequest(pages.routes.ApplicationController.signOut()))
       }
     }
   }
 
-    "The `newRequest` action" should {
-      REDIRECT_TO_LOGIN in new Context {
-        new WithApplication(application) {
+  "The `newRequest` action" should {
+    REDIRECT_TO_LOGIN in new Context {
+      new WithApplication(application) {
 
-          val request = FakeRequest(pages.routes.ApplicationController.newRequest).withAuthenticator[DefaultEnv](identity.loginInfo)
-          val Some(result) = route(app, request)
+        val request = FakeRequest(pages.routes.ApplicationController.newRequest()).withAuthenticator[DefaultEnv](identity.loginInfo)
+        val Some(result) = route(app, request)
 
-          status(result) must be equalTo OK
-          contentType(result) must beSome(HTML_CONTENT_TYPE)
-          contentAsString(result) must contain("New Request")
-        }
-      }
-
-      REDIRECT_TO_LOGIN in new Context {
-        new WithApplication(application) {
-          redirectLoginOnUnauthorized(app, FakeRequest(pages.routes.ApplicationController.newRequest))
-        }
+        status(result) must be equalTo OK
+        contentType(result) must beSome(HTML_CONTENT_TYPE)
+        contentAsString(result) must contain("New Request")
       }
     }
+
+    REDIRECT_TO_LOGIN in new Context {
+      new WithApplication(application) {
+        redirectLoginOnUnauthorized(app, FakeRequest(pages.routes.ApplicationController.newRequest()))
+      }
+    }
+  }
 
   "The `requests` action" should {
     REDIRECT_TO_LOGIN in new Context {
@@ -92,34 +96,32 @@ class ApplicationControllerSpec extends PlaySpecification with Mockito {
     }
   }
 
-    "return 200 requests page if user is authorized" in new Context {
-      new WithApplication(application) {
-        val Some(result) = route(app, FakeRequest(pages.routes.ApplicationController.requests(false))
-          .withAuthenticator[DefaultEnv](identity.loginInfo)
-        )
+  "return 200 requests page if user is authorized" in new Context {
+    new WithApplication(application) {
+      val Some(result) = route(app, FakeRequest(pages.routes.ApplicationController.requests(false))
+        .withAuthenticator[DefaultEnv](identity.loginInfo)
+      )
 
-        status(result) must beEqualTo(OK)
-        contentType(result) must beSome(HTML_CONTENT_TYPE)
-        contentAsString(result) must contain("Requests")
-      }
+      status(result) must beEqualTo(OK)
+      contentType(result) must beSome(HTML_CONTENT_TYPE)
+      contentAsString(result) must contain("Requests")
     }
+  }
 
 
   "The `editRequest` action" should {
-    REDIRECT_TO_LOGIN in new Context {
+    "redirect to New Request page" in new Context {
       new WithApplication(application) {
-
         val request = FakeRequest(pages.routes.ApplicationController.editRequest(1)).withAuthenticator[DefaultEnv](identity.loginInfo)
         val Some(result) = route(app, request)
-        val Some(finalResult) = redirectResultWithAuth(app, result)
 
-        status(finalResult) must be equalTo OK
-        contentType(finalResult) must beSome(HTML_CONTENT_TYPE)
-        contentAsString(finalResult) must contain("New Request")
+        status(result) must be equalTo OK
+        contentType(result) must beSome(HTML_CONTENT_TYPE)
+        contentAsString(result) must contain("Update Request")
       }
     }
 
-    "return 200 login page if user is unauthorized" in new Context {
+    REDIRECT_TO_LOGIN in new Context {
       new WithApplication(application) {
         redirectLoginOnUnauthorized(app, FakeRequest(pages.routes.ApplicationController.editRequest(1)))
       }
@@ -127,54 +129,95 @@ class ApplicationControllerSpec extends PlaySpecification with Mockito {
   }
 
   "The `editRequirements` action" should {
-    REDIRECT_TO_LOGIN in new Context {
+    "redirect to Edit Requirements Page" in new Context {
       new WithApplication(application) {
 
         val request = FakeRequest(pages.routes.ApplicationController.editRequirements(1)).withAuthenticator[DefaultEnv](identity.loginInfo)
         val Some(result) = route(app, request)
-        val Some(finalResult) = redirectResultWithAuth(app, result)
 
-        status(finalResult) must be equalTo OK
-        contentType(finalResult) must beSome(HTML_CONTENT_TYPE)
-        contentAsString(finalResult) must contain("Edit Requirements") or contain("View Log")
+        status(result) must be equalTo OK
+        contentType(result) must beSome(HTML_CONTENT_TYPE)
+        contentAsString(result) must contain("Edit Request Requirements")
       }
     }
 
-    "return 200 login page if user is unauthorized" in new Context {
+    REDIRECT_TO_LOGIN in new Context {
       new WithApplication(application) {
         redirectLoginOnUnauthorized(app, FakeRequest(pages.routes.ApplicationController.editRequirements(1)))
       }
     }
   }
+
+  "The `editProgress` action" should {
+    "redirect to Edit Progress Page" in new Context {
+      new WithApplication(application) {
+
+        val request = FakeRequest(pages.routes.ApplicationController.editProgress(1)).withAuthenticator[DefaultEnv](identity.loginInfo)
+        val Some(result) = route(app, request)
+
+        status(result) must be equalTo OK
+        contentType(result) must beSome(HTML_CONTENT_TYPE)
+        contentAsString(result) must contain("Edit Requirement Progress")
+      }
+    }
+
+    REDIRECT_TO_LOGIN in new Context {
+      new WithApplication(application) {
+        redirectLoginOnUnauthorized(app, FakeRequest(pages.routes.ApplicationController.editProgress(1)))
+      }
+    }
+  }
+
+  "The `sendFile` action" should {
+    "redirect to Send File page" in new Context {
+      new WithApplication(application) {
+
+        val request = FakeRequest(pages.routes.ApplicationController.sendFile(1)).withAuthenticator[DefaultEnv](identity.loginInfo)
+        val Some(result) = route(app, request)
+
+        status(result) must be equalTo OK
+        contentType(result) must beSome(HTML_CONTENT_TYPE)
+        contentAsString(result) must contain("Send File")
+      }
+    }
+
+    REDIRECT_TO_LOGIN in new Context {
+      new WithApplication(application) {
+        redirectLoginOnUnauthorized(app, FakeRequest(pages.routes.ApplicationController.editProgress(1)))
+      }
+    }
+  }
+
   /**
-   * The context.
-   */
+    * The context.
+    */
   trait Context extends Scope {
+
     /**
-     * A fake Guice module.
-     */
+      * A fake Guice module.
+      */
     class FakeModule extends AbstractModule with ScalaModule {
-      def configure() = {
+      def configure(): Unit = {
         bind[Environment[DefaultEnv]].toInstance(env)
       }
     }
 
-     def redirectUrl(someRoute: Future[Result]) = redirectLocation(someRoute) match {
+    def redirectUrl(someRoute: Future[Result]): String = redirectLocation(someRoute) match {
       case Some(s: String) => s
       case _ => ""
     }
 
-    def redirectResult(app: Application, result: Future[Result]) = {
+    def redirectResult(app: Application, result: Future[Result]): Option[Future[Result]] = {
       val nextUrl = redirectUrl(result)
       route(app, FakeRequest(GET, nextUrl))
     }
 
-     def redirectResultWithAuth(app: Application, result: Future[Result]) = {
+    def redirectResultWithAuth(app: Application, result: Future[Result]): Option[Future[Result]] = {
       val nextUrl = redirectUrl(result)
       route(app, FakeRequest(GET, nextUrl).withAuthenticator[DefaultEnv](identity.loginInfo))
     }
 
-    def redirectLoginOnUnauthorized(app: Application, request: FakeRequest[AnyContentAsEmpty.type]) = {
+    def redirectLoginOnUnauthorized(app: Application, request: FakeRequest[AnyContentAsEmpty.type]): MatchResult[String] = {
       val Some(result) = route(app, request)
       val Some(finalResult) = redirectResult(app, result)
 
@@ -184,8 +227,8 @@ class ApplicationControllerSpec extends PlaySpecification with Mockito {
     }
 
     /**
-     * An identity.
-     */
+      * An identity.
+      */
     val identity = User(
       userID = UUID.randomUUID(),
       loginInfo = LoginInfo("facebook", "user@facebook.com"),
@@ -197,16 +240,29 @@ class ApplicationControllerSpec extends PlaySpecification with Mockito {
       activated = true
     )
 
+    val mockRequest = DataRequest(
+      id = Random.nextInt(Integer.MAX_VALUE),
+      email = "user@facebook.com",
+      title = "title",
+      description = "desc",
+      status = 0,
+      pi = "",
+      phone = "",
+      cphs = "")
+
     /**
-     * A Silhouette fake environment.
-     */
+      * A Silhouette fake environment.
+      */
     implicit val env: Environment[DefaultEnv] = new FakeEnvironment[DefaultEnv](Seq(identity.loginInfo -> identity))
 
     /**
-     * The application.
-     */
-    lazy val application = new GuiceApplicationBuilder()
+      * The application.
+      */
+    lazy val application: Application = new GuiceApplicationBuilder()
       .overrides(new FakeModule)
       .build()
+    lazy val injector = application.injector.instanceOf[RequestService]
+    injector.insert(mockRequest)
   }
+
 }
