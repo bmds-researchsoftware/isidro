@@ -6,22 +6,21 @@ import com.google.inject.AbstractModule
 import com.mohiva.play.silhouette.api.{Environment, LoginInfo}
 import com.mohiva.play.silhouette.test._
 import controllers.pages.ApplicationController
-import models.services.RequestService
+import forms.pages.NewRequestForm
+import models.services.{RequestService, UserService}
 import models.{DataRequest, User}
 import net.codingwell.scalaguice.ScalaModule
 import org.specs2.matcher.MatchResult
 import org.specs2.mock.Mockito
 import org.specs2.specification.Scope
-import play.Mode
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.concurrent.Execution.Implicits._
 import play.api.mvc.{AnyContentAsEmpty, Result}
-import play.api.test.{FakeRequest, Helpers, PlaySpecification, WithApplication}
+import play.api.test._
 import utils.auth.DefaultEnv
 
 import scala.concurrent.Future
-import scala.util.Random
 
 /**
   * Test case for the [[ApplicationController]] class.
@@ -183,7 +182,73 @@ class ApplicationControllerSpec extends PlaySpecification with Mockito {
 
     REDIRECT_TO_LOGIN in new Context {
       new WithApplication(application) {
-        redirectLoginOnUnauthorized(app, FakeRequest(pages.routes.ApplicationController.editProgress(1)))
+        redirectLoginOnUnauthorized(app, FakeRequest(pages.routes.ApplicationController.sendFile(1)))
+      }
+    }
+  }
+
+  "The `editAwaitingDownload` action" should {
+    "redirect to Edit Awaiting Download page" in new Context {
+      new WithApplication(application) {
+
+        val request = FakeRequest(pages.routes.ApplicationController.editAwaitingDownload(1)).withAuthenticator[DefaultEnv](identity.loginInfo)
+        val Some(result) = route(app, request)
+
+        status(result) must be equalTo OK
+        contentType(result) must beSome(HTML_CONTENT_TYPE)
+        contentAsString(result) must contain("Awaiting Download")
+      }
+    }
+
+    REDIRECT_TO_LOGIN in new Context {
+      new WithApplication(application) {
+        redirectLoginOnUnauthorized(app, FakeRequest(pages.routes.ApplicationController.editAwaitingDownload(1)))
+      }
+    }
+  }
+
+  "The `viewLog` action" should {
+    "redirect to View Log page" in new Context {
+      new WithApplication(application) {
+
+        val request = FakeRequest(pages.routes.ApplicationController.viewLog(1)).withAuthenticator[DefaultEnv](identity.loginInfo)
+        val Some(result) = route(app, request)
+
+        status(result) must be equalTo OK
+        contentType(result) must beSome(HTML_CONTENT_TYPE)
+        contentAsString(result) must contain("View Log")
+      }
+    }
+
+    REDIRECT_TO_LOGIN in new Context {
+      new WithApplication(application) {
+        redirectLoginOnUnauthorized(app, FakeRequest(pages.routes.ApplicationController.viewLog(1)))
+      }
+    }
+  }
+
+  "The `handleNewRequest` POST action" should {
+    "redirect to request page on successful submission" in new Context {
+      new WithApplication(application) {
+        val data = NewRequestForm.form.fill(mockInsertRequest).data.toSeq
+        val request = FakeRequest(POST, pages.routes.ApplicationController.handleNewRequest().url)
+          .withAuthenticator[DefaultEnv](identity.loginInfo)
+          .withFormUrlEncodedBody(data:_*).withHeaders("X-Requested-With"->"1","Csrf-Token"->"nocheck")
+        val Some(result) = route(app, request)
+        val Some(subfinalResult) = redirectResult(app, result)
+        val Some(finalResult) = redirectResult(app, subfinalResult)
+
+        // redirects to log in page because we're bypassing authentication to in essence
+        // cross-site script to allow testing POST requests
+        status(finalResult) must be equalTo OK
+        contentType(finalResult) must beSome(HTML_CONTENT_TYPE)
+        contentAsString(finalResult) must contain("Sign in to ISIDRO")
+      }
+    }
+
+    REDIRECT_TO_LOGIN in new Context {
+      new WithApplication(application) {
+        redirectLoginOnUnauthorized(app, FakeRequest(POST, pages.routes.ApplicationController.handleNewRequest().url))
       }
     }
   }
@@ -241,14 +306,23 @@ class ApplicationControllerSpec extends PlaySpecification with Mockito {
     )
 
     val mockRequest = DataRequest(
-      id = Random.nextInt(Integer.MAX_VALUE),
+      id = 1,
       email = "user@facebook.com",
       title = "title",
       description = "desc",
       status = 0,
-      pi = "",
-      phone = "",
-      cphs = "")
+      pi = "pi",
+      phone = "0123456789",
+      cphs = "cphs")
+    val mockInsertRequest = DataRequest(
+      id = 2,
+      email = "someotherdude@example.com",
+      title = "title",
+      description = "desc",
+      status = 0,
+      pi = "pi",
+      phone = "0123456789",
+      cphs = "cphs")
 
     /**
       * A Silhouette fake environment.
@@ -263,6 +337,8 @@ class ApplicationControllerSpec extends PlaySpecification with Mockito {
       .build()
     lazy val injector = application.injector.instanceOf[RequestService]
     injector.insert(mockRequest)
+    lazy val injector2 = application.injector.instanceOf[UserService]
+    injector2.save(identity)
   }
 
 }
