@@ -252,6 +252,31 @@ class ApplicationControllerSpec extends PlaySpecification with Mockito {
     }
   }
 
+  "The `handleEditRequest` POST action" should {
+    "redirect to request page on successful submission" in new Context {
+      new WithApplication(application) {
+        val requestForm = mockRequest.copy(phone = "9876543210")
+        val data = NewRequestForm.form.fill(requestForm).data.toSeq
+        val request = FakeRequest(POST, pages.routes.ApplicationController.handleEditRequest(mockRequest.id).url)
+          .withAuthenticator[DefaultEnv](identity.loginInfo)
+          .withFormUrlEncodedBody(data:_*).withHeaders("X-Requested-With"->"1","Csrf-Token"->"nocheck")
+        val Some(result) = route(app, request)
+        val Some(subfinalResult) = redirectResult(app, result)
+        val Some(finalResult) = redirectResult(app, subfinalResult)
+
+        val requestsFuture = injector.retrieve()
+        val testResult = for (r <- Await.result(requestsFuture, 30 seconds) if r.id == mockRequest.id && r.phone == "9876543210") yield r
+        testResult must not beNull
+      }
+    }
+
+    REDIRECT_TO_LOGIN in new Context {
+      new WithApplication(application) {
+        redirectLoginOnUnauthorized(app, FakeRequest(POST, pages.routes.ApplicationController.handleEditRequest(1).url))
+      }
+    }
+  }
+
   /**
     * The context.
     */
