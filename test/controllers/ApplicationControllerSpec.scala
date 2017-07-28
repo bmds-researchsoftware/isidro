@@ -7,7 +7,7 @@ import com.mohiva.play.silhouette.api.{Environment, LoginInfo}
 import com.mohiva.play.silhouette.test._
 import controllers.pages.ApplicationController
 import forms.pages.{NewRequestForm, RequirementForm, RequirementListData}
-import models.services.{RequestService, UserService}
+import models.services.RequestService
 import models.{DataRequest, User}
 import net.codingwell.scalaguice.ScalaModule
 import org.specs2.matcher.MatchResult
@@ -20,9 +20,8 @@ import play.api.mvc.{AnyContentAsEmpty, Result}
 import play.api.test._
 import utils.auth.DefaultEnv
 
-import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
-import scala.util.{Failure, Success}
+import scala.concurrent.{Await, Future}
 
 /**
   * Test case for the [[ApplicationController]] class.
@@ -31,7 +30,9 @@ class ApplicationControllerSpec extends PlaySpecification with Mockito {
   sequential
 
   private val REDIRECT_TO_LOGIN: String = "redirect to login page if user is unauthorized"
+  private val REDIRECT_TO_REQUESTS = "redirect to request page on successful submission"
   private val HTML_CONTENT_TYPE: String = "text/html"
+  private val CSRF_BYPASS_HEADER = Seq("X-Requested-With"->"1","Csrf-Token"->"nocheck")
 
   "The `index` action" should {
     "redirect to login page" in new Context {
@@ -230,17 +231,17 @@ class ApplicationControllerSpec extends PlaySpecification with Mockito {
   }
 
   "The `handleNewRequest` POST action" should {
-    "redirect to request page on successful submission" in new Context {
+    REDIRECT_TO_REQUESTS in new Context {
       new WithApplication(application) {
         val data = NewRequestForm.form.fill(mockInsertRequest).data.toSeq
         val request = FakeRequest(POST, pages.routes.ApplicationController.handleNewRequest().url)
           .withAuthenticator[DefaultEnv](identity.loginInfo)
-          .withFormUrlEncodedBody(data:_*).withHeaders("X-Requested-With"->"1","Csrf-Token"->"nocheck")
+          .withFormUrlEncodedBody(data:_*).withHeaders(CSRF_BYPASS_HEADER:_*)
         val Some(result) = route(app, request)
         val Some(subfinalResult) = redirectResult(app, result)
         val Some(finalResult) = redirectResult(app, subfinalResult)
 
-        val requestsFuture = injector.retrieve()
+        val requestsFuture = requestService.retrieve()
         val testResult = for (r <- Await.result(requestsFuture, 30 seconds) if r.id == mockInsertRequest.id) yield r
         testResult must not beNull
       }
@@ -254,7 +255,7 @@ class ApplicationControllerSpec extends PlaySpecification with Mockito {
   }
 
   "The `handleEditRequest` POST action" should {
-    "redirect to request page on successful submission" in new Context {
+    REDIRECT_TO_REQUESTS in new Context {
       new WithApplication(application) {
         val requestForm = mockRequest.copy(phone = "9876543210")
         val data = NewRequestForm.form.fill(requestForm).data.toSeq
@@ -265,7 +266,7 @@ class ApplicationControllerSpec extends PlaySpecification with Mockito {
         val Some(subfinalResult) = redirectResult(app, result)
         val Some(finalResult) = redirectResult(app, subfinalResult)
 
-        val requestsFuture = injector.retrieve()
+        val requestsFuture = requestService.retrieve()
         val testResult = for (r <- Await.result(requestsFuture, 30 seconds) if r.id == mockRequest.id && r.phone == "9876543210") yield r
         testResult must not beNull
       }
@@ -279,7 +280,7 @@ class ApplicationControllerSpec extends PlaySpecification with Mockito {
   }
 
   "The `handleRequirements` POST action" should {
-    "redirect to request page on successful submission" in new Context {
+    REDIRECT_TO_REQUESTS in new Context {
       new WithApplication(application) {
         val data = RequirementForm.form.fill(RequirementListData.apply(List("1", "2"))).data
         val request = FakeRequest(POST, pages.routes.ApplicationController.handleRequirements(mockRequest.id).url)
@@ -290,9 +291,9 @@ class ApplicationControllerSpec extends PlaySpecification with Mockito {
         val Some(finalResult) = redirectResult(app, subfinalResult)
 
 
-        val(_,requirementsMap) = Await.result(injector.getRequirements(mockRequest.id), 30 seconds)
+        val(_,requirementsMap) = Await.result(requestService.getRequirements(mockRequest.id), 30 seconds)
         val(_,requirements) = requirementsMap
-        val requirementsTitles = Await.result(injector.getRequirementTitles(requirements), 30 seconds)
+        val requirementsTitles = Await.result(requestService.getRequirementTitles(requirements), 30 seconds)
         requirementsTitles must contain("End-User Licensing Agreement")
         requirementsTitles must contain("Data Use Agreement")
 
@@ -389,10 +390,8 @@ class ApplicationControllerSpec extends PlaySpecification with Mockito {
     lazy val application: Application = new GuiceApplicationBuilder()
       .overrides(new FakeModule)
       .build()
-    lazy val injector = application.injector.instanceOf[RequestService]
-    injector.insert(mockRequest)
-    lazy val injector2 = application.injector.instanceOf[UserService]
-    injector2.save(identity)
+    lazy val requestService: RequestService = application.injector.instanceOf[RequestService]
+    requestService.insert(mockRequest)
   }
 
 }
