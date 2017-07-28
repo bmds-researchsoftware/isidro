@@ -6,7 +6,7 @@ import com.google.inject.AbstractModule
 import com.mohiva.play.silhouette.api.{Environment, LoginInfo}
 import com.mohiva.play.silhouette.test._
 import controllers.pages.ApplicationController
-import forms.pages.NewRequestForm
+import forms.pages.{NewRequestForm, RequirementForm, RequirementListData}
 import models.services.{RequestService, UserService}
 import models.{DataRequest, User}
 import net.codingwell.scalaguice.ScalaModule
@@ -22,6 +22,7 @@ import utils.auth.DefaultEnv
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
+import scala.util.{Failure, Success}
 
 /**
   * Test case for the [[ApplicationController]] class.
@@ -273,6 +274,35 @@ class ApplicationControllerSpec extends PlaySpecification with Mockito {
     REDIRECT_TO_LOGIN in new Context {
       new WithApplication(application) {
         redirectLoginOnUnauthorized(app, FakeRequest(POST, pages.routes.ApplicationController.handleEditRequest(1).url))
+      }
+    }
+  }
+
+  "The `handleRequirements` POST action" should {
+    "redirect to request page on successful submission" in new Context {
+      new WithApplication(application) {
+        val data = RequirementForm.form.fill(RequirementListData.apply(List("1", "2"))).data
+        val request = FakeRequest(POST, pages.routes.ApplicationController.handleRequirements(mockRequest.id).url)
+          .withAuthenticator[DefaultEnv](identity.loginInfo)
+          .withFormUrlEncodedBody(data.toSeq:_*).withHeaders("X-Requested-With"->"1","Csrf-Token"->"nocheck")
+        val Some(result) = route(app, request)
+        val Some(subfinalResult) = redirectResult(app, result)
+        val Some(finalResult) = redirectResult(app, subfinalResult)
+
+
+        val(_,requirementsMap) = Await.result(injector.getRequirements(mockRequest.id), 30 seconds)
+        val(_,requirements) = requirementsMap
+        val requirementsTitles = Await.result(injector.getRequirementTitles(requirements), 30 seconds)
+        requirementsTitles must contain("End-User Licensing Agreement")
+        requirementsTitles must contain("Data Use Agreement")
+
+
+      }
+    }
+
+    REDIRECT_TO_LOGIN in new Context {
+      new WithApplication(application) {
+        redirectLoginOnUnauthorized(app, FakeRequest(POST, pages.routes.ApplicationController.handleRequirements(1).url))
       }
     }
   }
