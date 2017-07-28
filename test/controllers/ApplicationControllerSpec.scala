@@ -20,7 +20,8 @@ import play.api.mvc.{AnyContentAsEmpty, Result}
 import play.api.test._
 import utils.auth.DefaultEnv
 
-import scala.concurrent.Future
+import scala.concurrent.{Await, Future}
+import scala.concurrent.duration._
 
 /**
   * Test case for the [[ApplicationController]] class.
@@ -238,11 +239,9 @@ class ApplicationControllerSpec extends PlaySpecification with Mockito {
         val Some(subfinalResult) = redirectResult(app, result)
         val Some(finalResult) = redirectResult(app, subfinalResult)
 
-        // redirects to log in page because we're bypassing authentication to in essence
-        // cross-site script to allow testing POST requests
-        status(finalResult) must be equalTo OK
-        contentType(finalResult) must beSome(HTML_CONTENT_TYPE)
-        contentAsString(finalResult) must contain("Sign in to ISIDRO")
+        val requestsFuture = injector.retrieve()
+        val testResult = for (r <- Await.result(requestsFuture, 30 seconds) if r.id == mockInsertRequest.id) yield r
+        testResult must not beNull
       }
     }
 
