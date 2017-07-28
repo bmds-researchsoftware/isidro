@@ -261,7 +261,7 @@ class ApplicationControllerSpec extends PlaySpecification with Mockito {
         val data = NewRequestForm.form.fill(requestForm).data.toSeq
         val request = FakeRequest(POST, pages.routes.ApplicationController.handleEditRequest(mockRequest.id).url)
           .withAuthenticator[DefaultEnv](identity.loginInfo)
-          .withFormUrlEncodedBody(data:_*).withHeaders("X-Requested-With"->"1","Csrf-Token"->"nocheck")
+          .withFormUrlEncodedBody(data:_*).withHeaders(CSRF_BYPASS_HEADER:_*)
         val Some(result) = route(app, request)
         val Some(subfinalResult) = redirectResult(app, result)
         val Some(finalResult) = redirectResult(app, subfinalResult)
@@ -285,7 +285,7 @@ class ApplicationControllerSpec extends PlaySpecification with Mockito {
         val data = RequirementForm.form.fill(RequirementListData.apply(List("1", "2"))).data
         val request = FakeRequest(POST, pages.routes.ApplicationController.handleRequirements(mockRequest.id).url)
           .withAuthenticator[DefaultEnv](identity.loginInfo)
-          .withFormUrlEncodedBody(data.toSeq:_*).withHeaders("X-Requested-With"->"1","Csrf-Token"->"nocheck")
+          .withFormUrlEncodedBody(data.toSeq:_*).withHeaders(CSRF_BYPASS_HEADER:_*)
         val Some(result) = route(app, request)
         val Some(subfinalResult) = redirectResult(app, result)
         val Some(finalResult) = redirectResult(app, subfinalResult)
@@ -296,8 +296,6 @@ class ApplicationControllerSpec extends PlaySpecification with Mockito {
         val requirementsTitles = Await.result(requestService.getRequirementTitles(requirements), 30 seconds)
         requirementsTitles must contain("End-User Licensing Agreement")
         requirementsTitles must contain("Data Use Agreement")
-
-
       }
     }
 
@@ -308,6 +306,34 @@ class ApplicationControllerSpec extends PlaySpecification with Mockito {
     }
   }
 
+  "The `handleProgress` POST action" should {
+    REDIRECT_TO_REQUESTS in new Context {
+      new WithApplication(application) {
+        route(app, FakeRequest(POST, pages.routes.ApplicationController.handleRequirements(mockRequest.id).url)
+          .withAuthenticator[DefaultEnv](identity.loginInfo)
+          .withFormUrlEncodedBody(
+            RequirementForm.form.fill(RequirementListData.apply(List("1", "2"))).data.toSeq:_*)
+          .withHeaders(CSRF_BYPASS_HEADER:_*))
+        val data = RequirementForm.form.fill(RequirementListData.apply(List("2"))).data
+        val request = FakeRequest(POST, pages.routes.ApplicationController.handleProgress(mockRequest.id).url)
+          .withAuthenticator[DefaultEnv](identity.loginInfo)
+          .withFormUrlEncodedBody(data.toSeq:_*).withHeaders(CSRF_BYPASS_HEADER:_*)
+        val Some(result) = route(app, request)
+        val Some(subfinalResult) = redirectResult(app, result)
+        val Some(finalResult) = redirectResult(app, subfinalResult)
+
+
+        val (_,requirementsMap) = Await.result(requestService.getRequirementProgress(mockRequest.id), 30 seconds)
+        for ((_, status, name) <- requirementsMap if name == "Data Use Agreement") yield status must beTrue
+      }
+    }
+
+    REDIRECT_TO_LOGIN in new Context {
+      new WithApplication(application) {
+        redirectLoginOnUnauthorized(app, FakeRequest(POST, pages.routes.ApplicationController.handleProgress(1).url))
+      }
+    }
+  }
   /**
     * The context.
     */
