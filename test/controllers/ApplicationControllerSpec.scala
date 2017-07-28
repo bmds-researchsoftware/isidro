@@ -1,5 +1,6 @@
 package controllers
 
+import java.nio.file.{Files, Paths, StandardCopyOption}
 import java.util.UUID
 
 import com.google.inject.AbstractModule
@@ -15,13 +16,16 @@ import org.specs2.mock.Mockito
 import org.specs2.specification.Scope
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.libs.Files.TemporaryFile
 import play.api.libs.concurrent.Execution.Implicits._
-import play.api.mvc.{AnyContentAsEmpty, Result}
+import play.api.mvc.MultipartFormData.FilePart
+import play.api.mvc.{AnyContentAsEmpty, MultipartFormData, Result}
 import play.api.test._
 import utils.auth.DefaultEnv
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
+import scala.io.Source
 
 /**
   * Test case for the [[ApplicationController]] class.
@@ -331,6 +335,55 @@ class ApplicationControllerSpec extends PlaySpecification with Mockito {
     REDIRECT_TO_LOGIN in new Context {
       new WithApplication(application) {
         redirectLoginOnUnauthorized(app, FakeRequest(POST, pages.routes.ApplicationController.handleProgress(1).url))
+      }
+    }
+  }
+
+  "The `handleFileUpload` POST action" should {
+    REDIRECT_TO_REQUESTS in new Context {
+      new WithApplication(application) {
+        val data = RequirementForm.form.fill(RequirementListData.apply(List("1","2"))).data
+        route(app, FakeRequest(POST, pages.routes.ApplicationController.handleRequirements(mockRequest.id).url)
+          .withAuthenticator[DefaultEnv](identity.loginInfo)
+          .withFormUrlEncodedBody(data.toSeq:_*)
+          .withHeaders(CSRF_BYPASS_HEADER:_*))
+        route(app, FakeRequest(POST, pages.routes.ApplicationController.handleProgress(mockRequest.id).url)
+          .withAuthenticator[DefaultEnv](identity.loginInfo)
+          .withFormUrlEncodedBody(data.toSeq:_*).withHeaders(CSRF_BYPASS_HEADER:_*))
+
+        val temp = Seq("fingerprint","watermark","signature","encrypt")
+        val uploadData = (temp zip temp)
+        val tempFile = TemporaryFile("TEST_REMOVE_")
+        Files.copy(Paths.get(getClass.getResource("/json.csv").toURI), tempFile.file.toPath, StandardCopyOption.REPLACE_EXISTING)
+        val part = FilePart[TemporaryFile](key = "fileData", filename = "the.file", contentType = Some("text/csv"), ref = tempFile)
+        val formData = MultipartFormData(dataParts = Map(), files = Seq(part), badParts = Seq())
+
+        val request = FakeRequest(POST, pages.routes.ApplicationController.handleFileUpload(mockRequest.id).url)
+          .withAuthenticator[DefaultEnv](identity.loginInfo).withMultipartFormDataBody(formData)
+          .withFormUrlEncodedBody(uploadData:_*).withHeaders(CSRF_BYPASS_HEADER:_*)
+        val Some(result) = route(app, request)
+        val Some(subfinalResult) = redirectResult(app, result)
+        val Some(finalResult) = redirectResult(app, subfinalResult)
+
+      }
+    }
+
+    REDIRECT_TO_LOGIN in new Context {
+      new WithApplication(application) {
+
+        val temp = Seq("fingerprint","watermark","signature","encrypt")
+        val uploadData = (temp zip temp)
+        val tempFile = TemporaryFile("TEST_REMOVE_")
+        Files.copy(Paths.get(getClass.getResource("/json.csv").toURI), tempFile.file.toPath, StandardCopyOption.REPLACE_EXISTING)
+        val part = FilePart[TemporaryFile](key = "fileData", filename = "the.file", contentType = Some("text/csv"), ref = tempFile)
+        val formData = MultipartFormData(dataParts = Map(), files = Seq(part), badParts = Seq())
+
+        val request = FakeRequest(POST, pages.routes.ApplicationController.handleFileUpload(mockRequest.id).url)
+          .withAuthenticator[DefaultEnv](identity.loginInfo).withMultipartFormDataBody(formData)
+          .withFormUrlEncodedBody(uploadData:_*)
+        val Some(finalResult) = route(app, request)
+
+        status(finalResult) must be equalTo FORBIDDEN
       }
     }
   }
