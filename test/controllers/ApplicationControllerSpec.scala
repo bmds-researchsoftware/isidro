@@ -25,7 +25,7 @@ import utils.auth.DefaultEnv
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
-import scala.io.Source
+import edu.dartmouth.geisel.isidro.read.CsvReader
 
 /**
   * Test case for the [[ApplicationController]] class.
@@ -342,48 +342,79 @@ class ApplicationControllerSpec extends PlaySpecification with Mockito {
   "The `handleFileUpload` POST action" should {
     REDIRECT_TO_REQUESTS in new Context {
       new WithApplication(application) {
-        val data = RequirementForm.form.fill(RequirementListData.apply(List("1","2"))).data
+        val dataSequence = RequirementForm.form.fill(RequirementListData.apply(List("1", "2"))).data.toSeq
         route(app, FakeRequest(POST, pages.routes.ApplicationController.handleRequirements(mockRequest.id).url)
           .withAuthenticator[DefaultEnv](identity.loginInfo)
-          .withFormUrlEncodedBody(data.toSeq:_*)
+          .withFormUrlEncodedBody(dataSequence:_*)
           .withHeaders(CSRF_BYPASS_HEADER:_*))
         route(app, FakeRequest(POST, pages.routes.ApplicationController.handleProgress(mockRequest.id).url)
           .withAuthenticator[DefaultEnv](identity.loginInfo)
-          .withFormUrlEncodedBody(data.toSeq:_*).withHeaders(CSRF_BYPASS_HEADER:_*))
+          .withFormUrlEncodedBody(dataSequence:_*).withHeaders(CSRF_BYPASS_HEADER:_*))
 
+        val tempFile = TemporaryFile("temp.csv")
+        Files.copy(Paths.get(getClass.getResource("/json.csv").toURI), tempFile.file.toPath, StandardCopyOption.REPLACE_EXISTING)
+        val part = FilePart[TemporaryFile](key = "dataFile", filename = "temp.csv", contentType = Some("file"), ref = tempFile)
+        val files = Seq(part)
+        val dataParts = Map[String, Seq[String]](("params", Seq("fingerprint","watermark","signature","encrypt")))
+        // TODO figure out why this isn't persisting in temp long enough?
+
+        import util.MultipartFormDataWritable._
+        val request = FakeRequest(POST, pages.routes.ApplicationController.handleFileUpload(mockRequest.id).url)
+          .withAuthenticator[DefaultEnv](identity.loginInfo)
+          .withMultipartFormDataBody(MultipartFormData[TemporaryFile](
+            dataParts = dataParts, files = files, badParts = Nil))
+          //.withFormUrlEncodedBody(uploadData:_*)
+          .withHeaders(CSRF_BYPASS_HEADER:_*)
+        route(app, request)
+
+        val (uploadedFiles,_)= Await.result(requestService.getUniqueFiles(mockRequest.id), 30 seconds)
+        uploadedFiles must not beEmpty
+
+      }
+    }
+
+    "must be forbidden when unauthorized" in new Context {
+      new WithApplication(application) {
+        val request = FakeRequest(POST, pages.routes.ApplicationController.handleFileUpload(mockRequest.id).url)
+          .withAuthenticator[DefaultEnv](identity.loginInfo)
+        val Some(finalResult) = route(app, request)
+
+        status(finalResult) must be equalTo FORBIDDEN
+      }
+    }
+  }
+  "The `handleWithdrawFile` POST action" should {
+    REDIRECT_TO_REQUESTS in new Context {
+      new WithApplication(application) {
         val temp = Seq("fingerprint","watermark","signature","encrypt")
         val uploadData = (temp zip temp)
-        val tempFile = TemporaryFile("TEST_REMOVE_")
+        val tempFile = TemporaryFile("temp.csv")
         Files.copy(Paths.get(getClass.getResource("/json.csv").toURI), tempFile.file.toPath, StandardCopyOption.REPLACE_EXISTING)
-        val part = FilePart[TemporaryFile](key = "fileData", filename = "the.file", contentType = Some("text/csv"), ref = tempFile)
+        val part = FilePart[TemporaryFile](key = "dataFile", filename = "the.file", contentType = Some("text/csv"), ref = tempFile)
         val formData = MultipartFormData(dataParts = Map(), files = Seq(part), badParts = Seq())
-
-        val request = FakeRequest(POST, pages.routes.ApplicationController.handleFileUpload(mockRequest.id).url)
+        route(app, FakeRequest(POST, pages.routes.ApplicationController.handleFileUpload(mockRequest.id).url)
           .withAuthenticator[DefaultEnv](identity.loginInfo).withMultipartFormDataBody(formData)
-          .withFormUrlEncodedBody(uploadData:_*).withHeaders(CSRF_BYPASS_HEADER:_*)
+          .withFormUrlEncodedBody(uploadData:_*).withHeaders(CSRF_BYPASS_HEADER:_*))
+
+        val request = FakeRequest(POST, pages.routes.ApplicationController.handleWithdrawFile(mockRequest.id).url)
+          .withAuthenticator[DefaultEnv](identity.loginInfo).withHeaders(CSRF_BYPASS_HEADER:_*)
         val Some(result) = route(app, request)
         val Some(subfinalResult) = redirectResult(app, result)
         val Some(finalResult) = redirectResult(app, subfinalResult)
 
+
+        val (files,_) = Await.result(requestService.getUniqueFiles(mockRequest.id), 30 seconds)
+        files must beEmpty
+        //val(_,requirements) = requirementsMap
+//        val requirementsTitles = Await.result(requestService.getRequirementTitles(requirements), 30 seconds)
+//        requirementsTitles must contain("End-User Licensing Agreement")
+//        requirementsTitles must contain("Data Use Agreement")
       }
     }
 
     REDIRECT_TO_LOGIN in new Context {
       new WithApplication(application) {
-
-        val temp = Seq("fingerprint","watermark","signature","encrypt")
-        val uploadData = (temp zip temp)
-        val tempFile = TemporaryFile("TEST_REMOVE_")
-        Files.copy(Paths.get(getClass.getResource("/json.csv").toURI), tempFile.file.toPath, StandardCopyOption.REPLACE_EXISTING)
-        val part = FilePart[TemporaryFile](key = "fileData", filename = "the.file", contentType = Some("text/csv"), ref = tempFile)
-        val formData = MultipartFormData(dataParts = Map(), files = Seq(part), badParts = Seq())
-
-        val request = FakeRequest(POST, pages.routes.ApplicationController.handleFileUpload(mockRequest.id).url)
-          .withAuthenticator[DefaultEnv](identity.loginInfo).withMultipartFormDataBody(formData)
-          .withFormUrlEncodedBody(uploadData:_*)
-        val Some(finalResult) = route(app, request)
-
-        status(finalResult) must be equalTo FORBIDDEN
+        redirectLoginOnUnauthorized(app, FakeRequest(POST, pages.routes.ApplicationController.handleWithdrawFile(1).url))
       }
     }
   }
