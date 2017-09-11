@@ -356,14 +356,12 @@ class ApplicationControllerSpec extends PlaySpecification with Mockito {
         val part = FilePart[TemporaryFile](key = "dataFile", filename = "temp.csv", contentType = Some("file"), ref = tempFile)
         val files = Seq(part)
         val dataParts = Map[String, Seq[String]](("params", Seq("fingerprint","watermark","signature","encrypt")))
-        // TODO figure out why this isn't persisting in temp long enough?
 
         import util.MultipartFormDataWritable._
         val request = FakeRequest(POST, pages.routes.ApplicationController.handleFileUpload(mockRequest.id).url)
           .withAuthenticator[DefaultEnv](identity.loginInfo)
           .withMultipartFormDataBody(MultipartFormData[TemporaryFile](
             dataParts = dataParts, files = files, badParts = Nil))
-          //.withFormUrlEncodedBody(uploadData:_*)
           .withHeaders(CSRF_BYPASS_HEADER:_*)
         route(app, request)
 
