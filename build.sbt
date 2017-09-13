@@ -8,7 +8,7 @@ version := "0.9.1"
 
 scalaVersion := "2.11.8"
 
-//resolvers += Resolver.jcenterRepo
+resolvers += Resolver.jcenterRepo
 
 libraryDependencies ++= Seq(
   "com.mohiva" %% "play-silhouette" % "4.0.0",
@@ -38,6 +38,7 @@ libraryDependencies ++= Seq(
   "org.apache.poi" % "poi-ooxml" % "3.14",
   "org.apache.poi" % "poi-ooxml-schemas" % "3.14",
   "org.apache.xmlbeans" % "xmlbeans" % "2.6.0",
+  "com.h2database" % "h2" % "1.4.196" % "test",
   specs2 % Test,
   cache,
   filters
